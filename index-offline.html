@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generator Tablicy Poglądowej Biegłego</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="tailwind.min.css">
     <style>
         @page {
             margin: 5mm 20mm;
@@ -222,7 +222,8 @@
         </div>
         <div class="flex gap-4">
             <button onclick="saveZoomImage()"
-                class="flex-1 bg-gray-700 hover:bg-gray-900 text-white px-8 py-3 rounded font-bold shadow transition-all uppercase">&#8681;
+                style="flex:1;background:#374151;color:white;padding:12px 32px;border-radius:4px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;box-shadow:0 1px 3px rgba(0,0,0,.3);border:none;cursor:pointer"
+                onmouseover="this.style.background='#111827'" onmouseout="this.style.background='#374151'">&#8681;
                 Zapisz powi&#281;kszenie (PNG)</button>
         </div>
     </div>
@@ -525,14 +526,12 @@
         }
 
         function applyUnsharpMask(canvas, ctxLocal, amount) {
-            // Unsharp mask: wynikowy = original + amount * (original - blur)
             if (amount <= 0) return;
             const w = canvas.width;
             const h = canvas.height;
             const original = ctxLocal.getImageData(0, 0, w, h);
             const data = original.data;
 
-            // Gaussian blur (radius 1, 3x3 kernel)
             const blurred = ctxLocal.getImageData(0, 0, w, h);
             const bData = blurred.data;
             const kernel = [1, 2, 1, 2, 4, 2, 1, 2, 1];
@@ -552,7 +551,6 @@
                 }
             }
 
-            // Połącz: wynik = original + amount * (original - blur), clamp 0-255
             const result = ctxLocal.createImageData(w, h);
             const rData = result.data;
             for (let i = 0; i < data.length; i += 4) {
@@ -560,7 +558,7 @@
                     const sharp = data[i + ch] + amount * (data[i + ch] - bData[i + ch]);
                     rData[i + ch] = Math.min(255, Math.max(0, Math.round(sharp)));
                 }
-                rData[i + 3] = data[i + 3]; // alpha bez zmian
+                rData[i + 3] = data[i + 3];
             }
             ctxLocal.putImageData(result, 0, 0);
         }
@@ -610,28 +608,20 @@
             const sourceW = rect.width * ratioX;
             const sourceH = rect.height * ratioY;
 
-            // Oblicz mnożnik: największa wielokrotność całkowita mieszcząca się w kontenerze
             const displayW = canvasContainer.clientWidth;
             const multiplier = Math.max(1, Math.floor(displayW / sourceW));
 
-            // Rozmiar canvasu = dokładna wielokrotność wycinka (każdy piksel źródłowy = NxN pikseli)
             zoomCanvas.width = Math.round(sourceW) * multiplier;
             zoomCanvas.height = Math.round(sourceH) * multiplier;
 
-            // Wyłączenie interpolacji — nearest-neighbor, brak mieszania kolorów
             ctx.imageSmoothingEnabled = false;
             ctx.mozImageSmoothingEnabled = false;
             ctx.webkitImageSmoothingEnabled = false;
 
-            // Rysuj źródło przeskalowane dokładnie N-krotnie
             ctx.drawImage(mainFrame, sourceX, sourceY, sourceW, sourceH, 0, 0, zoomCanvas.width, zoomCanvas.height);
 
-            // Zastosuj korekcję: CSS filter (jasność/kontrast/nasycenie)
             const sharpenAmount = parseFloat(corrSharpen.value);
             if (sharpenAmount > 0) {
-                // USM: wpiecz CSS filter + unsharp mask na offscreen, wynik wstaw do zoom-canvas
-                // CSS filter na canvas NIE jest przechowywany w pikselach (getImageData go ignoruje),
-                // dlatego offscreen musi rysować mainFrame bezpośrednio z aktywnym filtrem.
                 const offscreen = document.createElement('canvas');
                 offscreen.width = zoomCanvas.width;
                 offscreen.height = zoomCanvas.height;
@@ -641,13 +631,11 @@
                 offCtx.drawImage(mainFrame, sourceX, sourceY, sourceW, sourceH, 0, 0, offscreen.width, offscreen.height);
                 offCtx.filter = 'none';
                 applyUnsharpMask(offscreen, offCtx, sharpenAmount);
-                // Wstaw gotowy wynik (CSS filter wyłączony — piksele już zawierają korekcję)
                 zoomCanvas.style.filter = 'none';
                 ctx.clearRect(0, 0, zoomCanvas.width, zoomCanvas.height);
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(offscreen, 0, 0);
             } else {
-                // Tylko CSS filter — lekka ścieżka bez manipulacji pikselami
                 zoomCanvas.style.filter = getCorrectionFilter();
             }
 
@@ -676,7 +664,6 @@
                 const val = input.value.trim();
                 if (!val) return;
                 let stored = JSON.parse(localStorage.getItem('ac_' + field) || '[]');
-                // Dodaj na początek, usuń duplikaty, ogranicz do 20
                 stored = stored.filter(v => v !== val);
                 stored.unshift(val);
                 stored = stored.slice(0, 20);
@@ -707,7 +694,6 @@
                 alert('Najpierw wgraj klatkę dowodową.');
                 return;
             }
-            // Ustal nazwę pliku analogicznie do printWithName()
             const sygnatura = document.getElementById('input-sygnatura').value.trim().replace(/[\/\.]/g, '-');
             const zalacznik = document.getElementById('input-zalacznik').value.trim();
             let name = 'Powiekszenie';
@@ -722,11 +708,8 @@
                 parseInt(corrSaturation.value) === 100);
 
             if (sharpenAmount > 0 || isNeutralFilter) {
-                // Piksele są już w pełni wbudowane w canvas (USM) lub brak korekcji — zapisz bezpośrednio
                 triggerDownload(zoomCanvas.toDataURL('image/png'), name);
             } else {
-                // Tylko CSS filter (bez USM) — filter nie jest wbudowany w piksele canvas,
-                // trzeba go wypalić na offscreen canvas przed zapisem
                 const offscreen = document.createElement('canvas');
                 offscreen.width = zoomCanvas.width;
                 offscreen.height = zoomCanvas.height;

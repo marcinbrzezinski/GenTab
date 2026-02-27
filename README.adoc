@@ -15,7 +15,29 @@ Aplikacja umożliwia:
 * Wgranie klatki dowodowej (obraz rastrowy)
 * Wyznaczenie obszaru szczegółowego za pomocą interaktywnego selektora
 * Wygenerowanie powiększenia z zachowaniem integralności pikselowej
+* Zastosowanie korekcji obrazu (jasność, kontrast, nasycenie, wyostrzenie USM)
 * Eksport do PDF z automatyczną nazwą pliku
+* Bezstratny zapis powiększenia szczegółu do pliku PNG
+
+== Wersje aplikacji
+
+[cols="2,3,1", options="header"]
+|===
+| Plik | Opis | Wymagania
+
+| `index.html`
+| Wersja robocza / online — Tailwind CSS ładowany z CDN. Umożliwia swobodne dodawanie nowych klas Tailwind bez przebudowy CSS.
+| Dostęp do internetu
+
+| `index-offline.html`
+| Wersja produkcyjna / offline — Tailwind CSS z lokalnego pliku `tailwind.min.css`. Działa bez połączenia z internetem, zalecana do użytku operacyjnego.
+| Brak (plik lokalny)
+|===
+
+[NOTE]
+====
+Wersja `index-offline.html` jest synchronizowana z `index.html` po osiągnięciu finalnej wersji funkcjonalności. Bieżące zmiany wprowadzaj w `index.html`.
+====
 
 == Wymagania
 
@@ -94,19 +116,37 @@ Wygenerowany dokument PDF zawiera:
 | Przybliżenie cyfrowe
 | Suwak 1.1×–20× (domyślnie 4.0×) — zmienia stopień powiększenia w selektorze
 | —
+
+| Korekcja powiększenia — Jasność
+| Suwak 0–200% (domyślnie 100%) — koryguje jasność powiększonego obszaru
+| —
+
+| Korekcja powiększenia — Kontrast
+| Suwak 0–200% (domyślnie 100%) — koryguje kontrast powiększonego obszaru
+| —
+
+| Korekcja powiększenia — Nasycenie
+| Suwak 0–300% (domyślnie 100%) — koryguje nasycenie barw powiększonego obszaru
+| —
+
+| Korekcja powiększenia — Wyostrzenie
+| Suwak 0.0–5.0 (domyślnie 0.0) — stosuje algorytm Unsharp Mask (USM) na powiększonym obszarze
+| —
 |===
 
 == Obsługa
 
 === Krok po kroku
 
-. Otwórz plik `index.html` w przeglądarce Chrome/Edge.
+. Otwórz plik `index.html` (wersja online, wymaga internetu) lub `index-offline.html` (wersja offline) w przeglądarce Chrome/Edge.
 . Wypełnij pola formularza (typ dokumentu, jednostka, sygnatura, nr załącznika, data, źródło).
 . Wgraj klatkę dowodową — obraz pojawi się jako Rycina 1.
 . Przeciągnij czerwony selektor na interesujący fragment lub kliknij w wybrany punkt obrazu.
 . Dostosuj przybliżenie suwakiem „Przybliżenie cyfrowe".
+. Opcjonalnie zastosuj korekcję powiększenia (jasność, kontrast, nasycenie, wyostrzenie) suwakami w sekcji „Korekcja powiększenia". Przycisk btn:[Reset] przywraca wartości domyślne.
 . Opcjonalnie zmniejsz obraz suwakiem „Rozmiar obrazu" (przydatne przy obrazach horyzontalnych, aby zmieścić wszystko na jednej stronie).
 . Uzupełnij pola edytowalne na arkuszu: znacznik czasu, opis, analiza szczegółu.
+. Kliknij btn:[Zapisz powiększenie (PNG)] aby bezstratnie zapisać powiększony obszar jako plik PNG.
 . Kliknij btn:[Eksportuj do PDF / Drukuj].
 
 === Ustawienia okna drukowania
@@ -160,6 +200,52 @@ Przybliżenie: X.Xx. Zachowano proporcje 1:1 obszaru źródłowego. Wyłączono 
 w celu zachowania surowej struktury pikseli obiektu dowodowego.
 ____
 
+== Korekcja obrazu powiększenia
+
+Panel „Korekcja powiększenia" umożliwia poprawę czytelności szczegółu przed eksportem.
+Wszystkie korekcje stosowane są wyłącznie na Rycinie 1a. Rycina 1 (klatka źródłowa) pozostaje niezmieniona.
+
+[cols="2,2,3", options="header"]
+|===
+| Parametr | Zakres | Metoda implementacji
+
+| Jasność
+| 0–200% (def. 100%)
+| CSS `filter: brightness()`
+
+| Kontrast
+| 0–200% (def. 100%)
+| CSS `filter: contrast()`
+
+| Nasycenie
+| 0–300% (def. 100%)
+| CSS `filter: saturate()`
+
+| Wyostrzenie (USM)
+| 0.0–5.0 (def. 0.0)
+| Algorytm Unsharp Mask przez `getImageData`/`putImageData` — piksele wynikowe wbudowane w canvas
+|===
+
+[IMPORTANT]
+====
+Gdy aktywne jest wyostrzenie (USM > 0), wszystkie korekcje (w tym jasność/kontrast/nasycenie) są wbudowywane bezpośrednio w piksele canvasu przed zapisem PDF i PNG, co gwarantuje zgodność z wyeksportowanym obrazem.
+====
+
+Zastosowane parametry korekcji są automatycznie dokumentowane w sekcji *Metodyka* arkusza wyjściowego, np.:
+
+[quote]
+____
+Zastosowano korekcję obrazu: jasność 120%, kontrast 130%, wyostrzenie USM 1.5.
+____
+
+== Zapis powiększenia do PNG
+
+Przycisk btn:[Zapisz powiększenie (PNG)] zapisuje Rycin 1a jako bezstratny plik PNG.
+
+* Nazwa pliku generowana identycznie jak przy eksporcie PDF: `sygnatura_zal-N_zoom.png`
+* Gdy aktywne jest USM — piksele są już wbudowane w canvas, zapis bezpośredni
+* Gdy aktywny jest wyłącznie CSS filter (bez USM) — filter jest wypalany na offscreen canvas przed zapisem, co gwarantuje, że plik PNG zawiera faktycznie skorygowany obraz
+
 == Autouzupełnianie
 
 Pola tekstowe (Jednostka, Sygnatura, Nr załącznika, Źródło) zapisują historię wpisów w `localStorage` przeglądarki.
@@ -203,7 +289,10 @@ Znaki `.` i `/` w sygnaturze zamieniane są na `-`.
 | Plik | Opis
 
 | `index.html`
-| Główna aplikacja — cała logika, layout i style inline
+| Wersja robocza (online) — Tailwind CSS z CDN
+
+| `index-offline.html`
+| Wersja produkcyjna (offline) — Tailwind CSS z lokalnego pliku `tailwind.min.css`
 
 | `tailwind.min.css`
 | Zbudowany i zminifikowany CSS z klas Tailwind użytych w `index.html`
