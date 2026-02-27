@@ -14,7 +14,7 @@ npm install --no-save tailwindcss@3 2>/dev/null
 cat > _tw_config.js <<'EOF'
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./index.html'],
+  content: ['./index.html', './index-offline.html'],
   theme: { extend: {} },
   plugins: [],
 }

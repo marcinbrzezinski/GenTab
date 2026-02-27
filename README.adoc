@@ -114,7 +114,7 @@ Wygenerowany dokument PDF zawiera:
 | —
 
 | Przybliżenie cyfrowe
-| Suwak 1.1×–20× (domyślnie 4.0×) — zmienia stopień powiększenia w selektorze
+| Suwak 1.1×–20× (domyślnie 4.0×) — określa wielkość obszaru zaznaczenia (selektor = 1/N szerokości obrazu). Przybliżenie względem środka ramki. Rzeczywiste powiększenie pikselowe (mnożnik N×N w canvasie) jest obliczane niezależnie — patrz sekcja _Integralność pikselowa_.
 | —
 
 | Korekcja powiększenia — Jasność
@@ -180,6 +180,28 @@ Aplikacja została zaprojektowana z myślą o zachowaniu pełnej integralności 
 * CSS `image-rendering: pixelated` — wyłącza wygładzanie przeglądarki
 * Obraz wyświetlany w oryginalnej strukturze pikselowej
 
+=== Dwa współczynniki powiększenia
+
+[WARNING]
+====
+W aplikacji występują dwa odrębne współczynniki, których nie należy mylić:
+====
+
+[cols="2,3,3", options="header"]
+|===
+| Parametr | Znaczenie | Źródło wartości
+
+| Obszar zaznaczenia (suwak)
+| Selektor obejmuje 1/N szerokości obrazu źródłowego. Określa _co_ jest powiększane, nie _jak bardzo_.
+| Wartość suwaka „Przybliżenie cyfrowe"
+
+| Powiększenie pikselowe (N×N)
+| Każdy piksel źródłowy odwzorowany jako identyczny blok N×N pikseli. To jest miarodajne powiększenie dla opinii sądowej.
+| `floor(szerokość_kontenera / szerokość_wycinka)` — obliczane automatycznie
+|===
+
+Plik PNG zapisywany przez aplikację zawiera piksele w wymiarach odpowiadających mnożnikowi N×N. Wizualne rozciągnięcie canvasu CSS w przeglądarce nie wpływa na treść pikselową pliku.
+
 === Rycina 1a (powiększenie)
 
 * Rendering na elemencie `<canvas>` z wyłączoną interpolacją (`imageSmoothingEnabled = false`)
@@ -191,13 +213,15 @@ Aplikacja została zaprojektowana z myślą o zachowaniu pełnej integralności 
 
 === Opis w sekcji Metodyka
 
-Wygenerowany dokument zawiera automatycznie uzupełnianą notę metodologiczną:
+Wygenerowany dokument zawiera automatycznie uzupełnianą notę metodologiczną z oboma współczynnikami:
 
 [quote]
 ____
 Obszar przedstawiony na Ryc. 1a stanowi bezpośrednie powiększenie fragmentu wskazanego na Ryc. 1.
-Przybliżenie: X.Xx. Zachowano proporcje 1:1 obszaru źródłowego. Wyłączono interpolację dwuliniową
-w celu zachowania surowej struktury pikseli obiektu dowodowego.
+Obszar zaznaczenia: *10.0×* (selektor obejmuje 1/10 szerokości obrazu).
+Powiększenie pikselowe: *3×* (każdy piksel źródłowy = 3×3 pikseli wynikowych).
+Zachowano proporcje 1:1 obszaru źródłowego. Wyłączono interpolację dwuliniową — każdy piksel
+źródłowy odwzorowany jako identyczny blok N×N pikseli.
 ____
 
 == Korekcja obrazu powiększenia
