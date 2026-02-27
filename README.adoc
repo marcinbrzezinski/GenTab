@@ -1,0 +1,201 @@
+= Generator Tablicy Poglądowej Biegłego
+:author: Biegły Sądowy
+:revdate: 2026-02-27
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: highlight.js
+
+== Opis projektu
+
+Jednostronicowa aplikacja webowa (`index.html`) służąca do tworzenia *tablic poglądowych kadrów wideo* na potrzeby opinii biegłego sądowego lub sprawozdania specjalisty.
+
+Aplikacja umożliwia:
+
+* Wgranie klatki dowodowej (obraz rastrowy)
+* Wyznaczenie obszaru szczegółowego za pomocą interaktywnego selektora
+* Wygenerowanie powiększenia z zachowaniem integralności pikselowej
+* Eksport do PDF z automatyczną nazwą pliku
+
+== Wymagania
+
+* Przeglądarka: Google Chrome / Microsoft Edge (zalecane)
+* Połączenie internetowe (Tailwind CSS ładowany z CDN)
+* Brak serwera — aplikacja działa lokalnie z pliku `file://`
+
+== Struktura dokumentu wyjściowego
+
+Wygenerowany dokument PDF zawiera:
+
+[cols="1,3", options="header"]
+|===
+| Element | Opis
+
+| Nagłówek
+| Nazwa jednostki (lewa strona), sygnatura akt + nr załącznika + typ dokumentu + data (prawa strona)
+
+| Rycina 1
+| Klatka źródłowa z zaznaczonym czerwonym selektorem wskazującym obszar szczegółowy
+
+| Metadane
+| Nazwa pliku, znacznik czasu, opis
+
+| Rycina 1a
+| Powiększenie szczegółu — odwzorowanie proporcjonalne z zachowaniem surowej struktury pikseli
+
+| Metodyka
+| Opis metody powiększenia, współczynnik przybliżenia, informacja o wyłączeniu interpolacji
+
+| Analiza szczegółu
+| Pole edytowalne do opisu obserwacji biegłego
+
+| Podpis
+| Imię, nazwisko i podpis biegłego / specjalisty (w zależności od typu dokumentu)
+|===
+
+== Panel kontrolny — pola formularza
+
+[cols="2,3,1", options="header"]
+|===
+| Pole | Opis | Autouzupełnianie
+
+| Typ dokumentu
+| Wybór: _Opinia_ lub _Sprawozdanie_. Wpływa na nagłówek (DO OPINII / DO SPRAWOZDANIA) oraz podpis (Biegły / Specjalista)
+| —
+
+| Jednostka
+| Nazwa jednostki zlecającej (np. Laboratorium Kryminalistyczne KWP w ...)
+| ✓ localStorage
+
+| Sygnatura akt
+| Sygnatura sprawy (np. II K 456/24, H.4497.25)
+| ✓ localStorage
+
+| Nr załącznika
+| Numer kolejny załącznika
+| ✓ localStorage
+
+| Data sporządzenia
+| Data w formacie kalendarza
+| —
+
+| Źródło (Plik)
+| Nazwa pliku źródłowego nagrania
+| ✓ localStorage
+
+| Wczytaj klatkę dowodową
+| Przycisk do wgrania pliku graficznego
+| —
+
+| Rozmiar obrazu
+| Suwak 30%–100% (domyślnie 90%) — zmienia wielkość Ryciny 1 i 1a
+| —
+
+| Przybliżenie cyfrowe
+| Suwak 1.1×–20× (domyślnie 4.0×) — zmienia stopień powiększenia w selektorze
+| —
+|===
+
+== Obsługa
+
+=== Krok po kroku
+
+. Otwórz plik `index.html` w przeglądarce Chrome/Edge.
+. Wypełnij pola formularza (typ dokumentu, jednostka, sygnatura, nr załącznika, data, źródło).
+. Wgraj klatkę dowodową — obraz pojawi się jako Rycina 1.
+. Przeciągnij czerwony selektor na interesujący fragment lub kliknij w wybrany punkt obrazu.
+. Dostosuj przybliżenie suwakiem „Przybliżenie cyfrowe".
+. Opcjonalnie zmniejsz obraz suwakiem „Rozmiar obrazu" (przydatne przy obrazach horyzontalnych, aby zmieścić wszystko na jednej stronie).
+. Uzupełnij pola edytowalne na arkuszu: znacznik czasu, opis, analiza szczegółu.
+. Kliknij btn:[Eksportuj do PDF / Drukuj].
+
+=== Ustawienia okna drukowania
+
+W oknie drukowania Chrome/Edge ustaw:
+
+* *Miejsce docelowe*: Zapisz jako PDF
+* *Marginesy*: Brak (marginesy są kontrolowane przez CSS `@page`)
+* *Skalowanie*: Domyślne (**nie** „Dopasuj do strony")
+* *Grafika tła*: Włączona
+
+== Mechanizm podziału na strony
+
+Aplikacja automatycznie wykrywa orientację wgranego obrazu:
+
+Obraz horyzontalny (landscape)::
+Rycina 1 i Rycina 1a mieszczą się na jednej stronie. Rozmiar można dodatkowo dopasować suwakiem.
+
+Obraz wertykalny (portrait)::
+Sekcja powiększenia (Rycina 1a) automatycznie przechodzi na drugą stronę z powtórzonym nagłówkiem. Podział realizowany jest przez CSS `page-break-before: always`.
+
+== Integralność pikselowa
+
+[IMPORTANT]
+====
+Aplikacja została zaprojektowana z myślą o zachowaniu pełnej integralności materiału dowodowego.
+====
+
+=== Rycina 1 (obraz źródłowy)
+
+* CSS `image-rendering: pixelated` — wyłącza wygładzanie przeglądarki
+* Obraz wyświetlany w oryginalnej strukturze pikselowej
+
+=== Rycina 1a (powiększenie)
+
+* Rendering na elemencie `<canvas>` z wyłączoną interpolacją (`imageSmoothingEnabled = false`)
+* Algorytm: **nearest-neighbor** — każdy piksel wynikowy jest dokładną kopią jednego piksela źródłowego, brak mieszania kolorów
+* Rozmiar canvasu = **dokładna wielokrotność całkowita** rozmiaru wycinka
+** Gwarantuje, że każdy piksel źródłowy jest odwzorowany jako identyczny blok N×N pikseli
+** Eliminuje nierównomierność siatki (spatial distortion)
+* Canvas renderowany w pełnej rozdzielczości — PDF otrzymuje gotowy obraz bez potrzeby skalowania
+
+=== Opis w sekcji Metodyka
+
+Wygenerowany dokument zawiera automatycznie uzupełnianą notę metodologiczną:
+
+[quote]
+____
+Obszar przedstawiony na Ryc. 1a stanowi bezpośrednie powiększenie fragmentu wskazanego na Ryc. 1.
+Przybliżenie: X.Xx. Zachowano proporcje 1:1 obszaru źródłowego. Wyłączono interpolację dwuliniową
+w celu zachowania surowej struktury pikseli obiektu dowodowego.
+____
+
+== Autouzupełnianie
+
+Pola tekstowe (Jednostka, Sygnatura, Nr załącznika, Źródło) zapisują historię wpisów w `localStorage` przeglądarki.
+
+* Wartości zapisywane przy każdym eksporcie/druku
+* Każde pole przechowuje do *20 ostatnich unikalnych wpisów*
+* Podpowiedzi wyświetlane przez element HTML `<datalist>`
+* Dane przechowywane pod kluczami: `ac_jednostka`, `ac_sygnatura`, `ac_zalacznik`, `ac_plik`
+
+== Nazewnictwo plików PDF
+
+Przy eksporcie aplikacja automatycznie ustawia nazwę pliku na podstawie sygnatury i numeru załącznika:
+
+[cols="2,2", options="header"]
+|===
+| Dane wejściowe | Nazwa pliku
+
+| Sygnatura: `H.4497.25`, załącznik: `3`
+| `H-4497-25_zal-3.pdf`
+
+| Sygnatura: `II K 456/24`, załącznik: `1`
+| `II K 456-24_zal-1.pdf`
+
+| Brak danych
+| `Tablica.pdf`
+|===
+
+Znaki `.` i `/` w sygnaturze zamieniane są na `-`.
+
+== Technologie
+
+* *HTML5* — struktura dokumentu, element `<canvas>`
+* *Tailwind CSS* (CDN) — stylowanie panelu kontrolnego
+* *Vanilla CSS* — stylowanie arkusza A4 i reguły drukowania (`@page`, `@media print`)
+* *Vanilla JavaScript* — logika interakcji, rendering canvasu, autouzupełnianie
+
+== Licencja
+
+Narzędzie wewnętrzne. Wszelkie prawa zastrzeżone.

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Tablicy Poglądowej Biegłego</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @page {
+            margin: 5mm 20mm;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+
+            .force-page-break>.print-only-header {
+                display: flex !important;
+            }
+
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .a4-page {
+                margin: 0 !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                padding: 0 !important;
+                border: none !important;
+                min-height: auto !important;
+                background: white !important;
+            }
+
+            .zoom-section-wrapper.force-page-break {
+                page-break-before: always;
+            }
+
+            .force-page-break>.zoom-content {
+                border-top: none !important;
+            }
+
+            .zoom-selector {
+                box-shadow: none !important;
+                border: 2px solid red !important;
+                background: transparent !important;
+            }
+        }
+
+        .print-only-header {
+            display: none;
+        }
+
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 10mm;
+            margin: 10px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border: 1px solid #eee;
+        }
+
+        .zoom-selector {
+            position: absolute;
+            border: 3px solid red;
+            background: rgba(255, 0, 0, 0.05);
+            cursor: move;
+            z-index: 10;
+        }
+
+        .zoom-display-container {
+            border: 1px solid black;
+            width: 100%;
+            /* Proporcja ustawiana dynamicznie na podstawie wgranego obrazu */
+            aspect-ratio: 16 / 9;
+            background: #ffffff;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #main-frame {
+            image-rendering: pixelated;
+            image-rendering: -webkit-optimize-contrast;
+        }
+
+        #zoom-canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Gwarancja braku deformacji */
+            display: block;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans p-4">
+
+    <div class="max-w-4xl mx-auto no-print bg-white p-6 rounded-lg shadow-md mb-8 border-t-4 border-red-600">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800 text-center uppercase tracking-tight">Panel Ekspercki: Tablica
+            Poglądowa</h1>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 uppercase">Typ dokumentu:</label>
+                <select id="input-typ-dokumentu"
+                    class="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none bg-white">
+                    <option value="opinia">Opinia</option>
+                    <option value="sprawozdanie">Sprawozdanie</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 uppercase">Jednostka:</label>
+                <input type="text" id="input-jednostka" name="jednostka" list="list-jednostka"
+                    class="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none"
+                    placeholder="np. Laboratorium Kryminalistyczne KWP w ...">
+                <datalist id="list-jednostka"></datalist>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 uppercase">Sygnatura akt:</label>
+                <input type="text" id="input-sygnatura" name="sygnatura" list="list-sygnatura"
+                    class="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none"
+                    placeholder="np. II K 456/24">
+                <datalist id="list-sygnatura"></datalist>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 uppercase">Nr załącznika:</label>
+                <input type="text" id="input-zalacznik" name="zalacznik" list="list-zalacznik"
+                    class="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none" placeholder="1">
+                <datalist id="list-zalacznik"></datalist>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 uppercase">Data sporządzenia:</label>
+                <input type="date" id="input-data" name="data" autocomplete="on"
+                    class="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 uppercase">Źródło (Plik):</label>
+                <input type="text" id="input-plik" name="plik" list="list-plik"
+                    class="w-full border p-2 rounded focus:ring-2 focus:ring-red-500 outline-none"
+                    placeholder="np. MONITORING_01.mp4">
+                <datalist id="list-plik"></datalist>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-bold text-red-600 uppercase">Wczytaj klatkę dowodową:</label>
+            <input type="file" id="image-upload" accept="image/*" class="w-full border p-2 bg-red-50 cursor-pointer">
+        </div>
+
+        <div class="flex gap-4 items-center mb-3 bg-gray-50 p-4 rounded border border-gray-200">
+            <label class="text-sm font-bold text-gray-700 uppercase whitespace-nowrap">Rozmiar obrazu:</label>
+            <input type="range" id="image-size-range" min="30" max="100" step="1" value="90"
+                class="flex-1 accent-red-600">
+            <span id="image-size-val"
+                class="font-mono font-bold w-16 text-center text-lg bg-white border rounded shadow-inner">90%</span>
+        </div>
+
+        <div class="flex gap-4 items-center mb-6 bg-gray-50 p-4 rounded border border-gray-200">
+            <label class="text-sm font-bold text-gray-700 uppercase">Przybliżenie cyfrowe:</label>
+            <input type="range" id="zoom-range" min="1.1" max="20" step="0.1" value="4" class="flex-1 accent-red-600">
+            <span id="zoom-val"
+                class="font-mono font-bold w-16 text-center text-lg bg-white border rounded shadow-inner">4.0x</span>
+        </div>
+
+        <div class="flex gap-4">
+            <button onclick="printWithName()"
+                class="flex-1 bg-red-700 text-white px-8 py-3 rounded hover:bg-red-800 font-bold shadow-lg transition-all uppercase">Eksportuj
+                do PDF / Drukuj</button>
+            <button onclick="resetData()"
+                class="bg-gray-200 text-gray-700 px-6 py-3 rounded hover:bg-gray-300 transition-all font-bold uppercase">Wyczyść</button>
+        </div>
+    </div>
+
+    <!-- Arkusz A4 -->
+    <div id="printable-area" class="a4-page mx-auto text-black">
+        <div class="flex justify-between border-b-2 border-black pb-1 mb-2">
+            <div class="text-[10px] font-bold uppercase" id="display-jednostka"></div>
+            <div class="text-[10px] font-bold uppercase text-right">
+                <span id="display-sygnatura"></span><br>
+                ZAŁĄCZNIK NR <span id="display-zalacznik">X</span>
+                DO <span id="display-typ-dokumentu">OPINII</span> Z DNIA <span id="display-data">________</span>
+            </div>
+        </div>
+
+        <h2 class="text-center text-base font-bold underline mb-2 uppercase">Tablica poglądowa kadrów wideo</h2>
+
+        <!-- Główna klatka -->
+        <div class="mb-2">
+            <div class="font-bold mb-1 text-[11px] uppercase">Rycina 1. Klatka źródłowa z zaznaczonym obszarem
+                szczegółowym</div>
+            <div id="wrapper" class="relative inline-block overflow-hidden border border-black bg-black mx-auto"
+                style="max-width: 90%; display: block;">
+                <img id="main-frame"
+                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450'%3E%3Crect width='100%25' height='100%25' fill='%23cccccc'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='24' fill='%23666666' text-anchor='middle' dy='.3em'%3EWGRAJ OBRAZ%3C/text%3E%3C/svg%3E"
+                    class="block w-full h-auto">
+                <div id="selector" class="zoom-selector"></div>
+            </div>
+
+            <div class="mt-1 grid grid-cols-1 gap-0.5 text-[10px]">
+                <div class="flex"><span class="font-bold w-36 uppercase">Nazwa pliku:</span> <span
+                        contenteditable="true" id="meta-file" class="border-b border-gray-100 flex-1">---</span></div>
+                <div class="flex"><span class="font-bold w-36 uppercase">Znacznik czasu:</span> <span
+                        contenteditable="true" class="border-b border-gray-100 flex-1">HH:MM:SS.CCC</span></div>
+                <div class="flex"><span class="font-bold w-36 uppercase">Opis:</span> <span contenteditable="true"
+                        id="desc-location" class="italic border-b border-gray-300 flex-1">...</span></div>
+            </div>
+        </div>
+
+        <!-- Wrapper sekcji powiększenia (warunkowy page-break) -->
+        <div id="zoom-section-wrapper" class="zoom-section-wrapper">
+            <!-- Nagłówek powielony — widoczny tylko w druku gdy jest na nowej stronie -->
+            <div id="zoom-page-header" class="print-only-header justify-between border-b-2 border-black pb-1 mb-2">
+                <div class="text-[10px] font-bold uppercase display-jednostka-mirror"></div>
+                <div class="text-[10px] font-bold uppercase text-right">
+                    <span class="display-sygnatura-mirror"></span><br>
+                    ZAŁĄCZNIK NR <span class="display-zalacznik-mirror">X</span>
+                    DO <span class="display-typ-dokumentu-mirror">OPINII</span> Z DNIA <span
+                        class="display-data-mirror">________</span>
+                </div>
+            </div>
+
+            <!-- Sekcja powiększenia -->
+            <div class="zoom-content border-t-2 border-black pt-1">
+                <div class="font-bold mb-1 text-[11px] uppercase">Rycina 1a. Powiększenie szczegółu (Odwzorowanie
+                    proporcjonalne 1:1)</div>
+                <div class="zoom-display-container mx-auto" id="canvas-container" style="max-width: 90%;">
+                    <canvas id="zoom-canvas"></canvas>
+                </div>
+
+                <div class="mt-1 grid grid-cols-2 gap-2">
+                    <div class="text-[10px] p-2 border border-gray-100 bg-gray-50">
+                        <p class="font-bold mb-1 uppercase text-red-900 border-b border-red-100 pb-1">Metodyka:</p>
+                        <p class="leading-tight text-gray-700">
+                            Obszar przedstawiony na Ryc. 1a stanowi bezpośrednie powiększenie fragmentu wskazanego na
+                            Ryc.
+                            1.
+                            <span id="zoom-info-text" class="font-bold text-black">Przybliżenie: 4.0x.</span>
+                            Zachowano proporcje 1:1 obszaru źródłowego. Wyłączono interpolację dwuliniową w celu
+                            zachowania
+                            surowej struktury pikseli obiektu dowodowego.
+                        </p>
+                    </div>
+                    <div class="text-[10px] p-2 border border-gray-100">
+                        <p class="font-bold mb-1 uppercase text-red-900 border-b border-red-100 pb-1">Analiza szczegółu:
+                        </p>
+                        <p contenteditable="true" class="italic min-h-[30px] leading-tight">Na powiększeniu widoczne
+                            są...
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-16 flex justify-end">
+                    <div class="text-center w-72 border-t border-black pt-1">
+                        <p class="text-[8px] uppercase font-bold tracking-tighter" id="display-podpis">Imię, Nazwisko i
+                            Podpis Biegłego</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('image-upload');
+        const mainFrame = document.getElementById('main-frame');
+        const selector = document.getElementById('selector');
+        const zoomCanvas = document.getElementById('zoom-canvas');
+        const canvasContainer = document.getElementById('canvas-container');
+        const ctx = zoomCanvas.getContext('2d');
+        const wrapper = document.getElementById('wrapper');
+        const zoomRange = document.getElementById('zoom-range');
+        const zoomVal = document.getElementById('zoom-val');
+        const zoomInfoText = document.getElementById('zoom-info-text');
+        const imageSizeRange = document.getElementById('image-size-range');
+        const imageSizeVal = document.getElementById('image-size-val');
+        const zoomSectionWrapper = document.getElementById('zoom-section-wrapper');
+        const zoomPageHeader = document.getElementById('zoom-page-header');
+
+        let isDragging = false;
+        let startX, startY;
+
+        // Poczucie proporcji kontenera
+        function getCanvasProportions() {
+            return canvasContainer.clientWidth / canvasContainer.clientHeight;
+        }
+
+        // Helper: aktualizuj wszystkie elementy z daną klasą
+        function updateMirrors(className, text) {
+            document.querySelectorAll('.' + className).forEach(el => el.innerText = text);
+        }
+
+        // Ustawienie trybu stron (1 vs 2 strony)
+        function setPageMode(isPortrait) {
+            if (isPortrait) {
+                zoomSectionWrapper.classList.add('force-page-break');
+            } else {
+                zoomSectionWrapper.classList.remove('force-page-break');
+            }
+        }
+
+        // Synchronizacja pól (strona 1 + mirror na stronie 2)
+        document.getElementById('input-jednostka').addEventListener('input', e => {
+            document.getElementById('display-jednostka').innerText = e.target.value;
+            updateMirrors('display-jednostka-mirror', e.target.value);
+        });
+        document.getElementById('input-sygnatura').addEventListener('input', e => {
+            const val = e.target.value ? 'SYGNATURA: ' + e.target.value : '';
+            document.getElementById('display-sygnatura').innerText = val;
+            updateMirrors('display-sygnatura-mirror', val);
+        });
+        document.getElementById('input-zalacznik').addEventListener('input', e => {
+            document.getElementById('display-zalacznik').innerText = e.target.value;
+            updateMirrors('display-zalacznik-mirror', e.target.value);
+        });
+        document.getElementById('input-data').addEventListener('input', e => {
+            document.getElementById('display-data').innerText = e.target.value;
+            updateMirrors('display-data-mirror', e.target.value);
+        });
+        document.getElementById('input-plik').addEventListener('input', e => document.getElementById('meta-file').innerText = e.target.value);
+
+        // Typ dokumentu
+        document.getElementById('input-typ-dokumentu').addEventListener('change', function (e) {
+            const typ = e.target.value;
+            if (typ === 'opinia') {
+                document.getElementById('display-typ-dokumentu').innerText = 'OPINII';
+                updateMirrors('display-typ-dokumentu-mirror', 'OPINII');
+                document.getElementById('display-podpis').innerText = 'Imię, Nazwisko i Podpis Biegłego';
+            } else {
+                document.getElementById('display-typ-dokumentu').innerText = 'SPRAWOZDANIA';
+                updateMirrors('display-typ-dokumentu-mirror', 'SPRAWOZDANIA');
+                document.getElementById('display-podpis').innerText = 'Imię, Nazwisko i Podpis Specjalisty';
+            }
+        });
+
+        // Slider rozmiaru obrazu
+        imageSizeRange.addEventListener('input', (e) => {
+            const size = e.target.value;
+            imageSizeVal.innerText = size + '%';
+            wrapper.style.maxWidth = size + '%';
+            canvasContainer.style.maxWidth = size + '%';
+            updateSelectorSize();
+            updateZoom();
+        });
+
+        zoomRange.addEventListener('input', (e) => {
+            const scale = e.target.value;
+            const formattedScale = parseFloat(scale).toFixed(1);
+            zoomVal.innerText = formattedScale + 'x';
+            zoomInfoText.innerText = `Przybliżenie: ${formattedScale}x.`;
+            updateSelectorSize();
+            updateZoom();
+        });
+
+        function updateSelectorSize() {
+            if (!mainFrame.clientWidth) return;
+
+            const scale = zoomRange.value;
+            const containerRatio = getCanvasProportions();
+
+            // Szerokość selektora w procentach wrappera
+            const widthPct = (100 / scale);
+            const newWidthPx = mainFrame.clientWidth / scale;
+            const newHeightPx = newWidthPx / containerRatio;
+            const heightPct = (newHeightPx / wrapper.clientHeight) * 100;
+
+            selector.style.width = widthPct + '%';
+            selector.style.height = heightPct + '%';
+
+            // Ograniczenia krawędzi (w procentach)
+            const maxLeftPct = 100 - widthPct;
+            const maxTopPct = 100 - heightPct;
+            const currentLeft = parseFloat(selector.style.left) || 0;
+            const currentTop = parseFloat(selector.style.top) || 0;
+            if (currentLeft > maxLeftPct) selector.style.left = maxLeftPct + '%';
+            if (currentTop > maxTopPct) selector.style.top = maxTopPct + '%';
+        }
+
+        imageUpload.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    mainFrame.onload = () => {
+                        // Dynamicznie ustaw proporcje kontenera powiększenia na podstawie obrazu
+                        const ratio = mainFrame.naturalWidth / mainFrame.naturalHeight;
+                        canvasContainer.style.aspectRatio = ratio.toString();
+                        selector.style.left = '0%';
+                        selector.style.top = '0%';
+                        // Uzupełnij Opis o nazwę pliku i rozdzielczość
+                        document.getElementById('desc-location').innerText = file.name + ' | Rozdzielczość: ' + mainFrame.naturalWidth + ' × ' + mainFrame.naturalHeight + ' px';
+
+                        // Auto-detekcja orientacji: pionowy obraz → 2 strony
+                        const isPortrait = mainFrame.naturalHeight > mainFrame.naturalWidth;
+                        setPageMode(isPortrait);
+
+                        updateSelectorSize();
+                        updateZoom();
+                    };
+                    mainFrame.src = event.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        selector.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', endDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            startX = e.clientX - selector.offsetLeft;
+            startY = e.clientY - selector.offsetTop;
+            e.preventDefault();
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            let x = e.clientX - startX;
+            let y = e.clientY - startY;
+            const maxX = wrapper.clientWidth - selector.clientWidth;
+            const maxY = wrapper.clientHeight - selector.clientHeight;
+            x = Math.max(0, Math.min(x, maxX));
+            y = Math.max(0, Math.min(y, maxY));
+            // Zapisz pozycję w procentach
+            selector.style.left = (x / wrapper.clientWidth * 100) + '%';
+            selector.style.top = (y / wrapper.clientHeight * 100) + '%';
+            updateZoom();
+        }
+
+        function endDrag() { isDragging = false; }
+
+        // Kliknięcie na wrapper — ustaw selektor wycentrowany na kliknięty punkt
+        wrapper.addEventListener('click', function (e) {
+            if (e.target === selector) return; // ignoruj kliknięcie w sam selektor
+            const rect = wrapper.getBoundingClientRect();
+            let x = e.clientX - rect.left - selector.clientWidth / 2;
+            let y = e.clientY - rect.top - selector.clientHeight / 2;
+            const maxX = wrapper.clientWidth - selector.clientWidth;
+            const maxY = wrapper.clientHeight - selector.clientHeight;
+            x = Math.max(0, Math.min(x, maxX));
+            y = Math.max(0, Math.min(y, maxY));
+            selector.style.left = (x / wrapper.clientWidth * 100) + '%';
+            selector.style.top = (y / wrapper.clientHeight * 100) + '%';
+            updateZoom();
+        });
+
+        function updateZoom() {
+            if (!mainFrame.complete || mainFrame.naturalWidth === 0) return;
+
+            const rect = selector.getBoundingClientRect();
+            const imgRect = mainFrame.getBoundingClientRect();
+
+            const ratioX = mainFrame.naturalWidth / mainFrame.clientWidth;
+            const ratioY = mainFrame.naturalHeight / mainFrame.clientHeight;
+
+            const sourceX = (rect.left - imgRect.left) * ratioX;
+            const sourceY = (rect.top - imgRect.top) * ratioY;
+            const sourceW = rect.width * ratioX;
+            const sourceH = rect.height * ratioY;
+
+            // Oblicz mnożnik: największa wielokrotność całkowita mieszcząca się w kontenerze
+            const displayW = canvasContainer.clientWidth;
+            const multiplier = Math.max(1, Math.floor(displayW / sourceW));
+
+            // Rozmiar canvasu = dokładna wielokrotność wycinka (każdy piksel źródłowy = NxN pikseli)
+            zoomCanvas.width = Math.round(sourceW) * multiplier;
+            zoomCanvas.height = Math.round(sourceH) * multiplier;
+
+            // Wyłączenie interpolacji — nearest-neighbor, brak mieszania kolorów
+            ctx.imageSmoothingEnabled = false;
+            ctx.mozImageSmoothingEnabled = false;
+            ctx.webkitImageSmoothingEnabled = false;
+
+            // Rysuj źródło przeskalowane dokładnie N-krotnie
+            ctx.drawImage(mainFrame, sourceX, sourceY, sourceW, sourceH, 0, 0, zoomCanvas.width, zoomCanvas.height);
+        }
+
+        // --- Autouzupełnianie (localStorage + datalist) ---
+        const autoFields = ['jednostka', 'sygnatura', 'zalacznik', 'plik'];
+
+        function loadAutocomplete() {
+            autoFields.forEach(field => {
+                const stored = JSON.parse(localStorage.getItem('ac_' + field) || '[]');
+                const datalist = document.getElementById('list-' + field);
+                datalist.innerHTML = '';
+                stored.forEach(val => {
+                    const opt = document.createElement('option');
+                    opt.value = val;
+                    datalist.appendChild(opt);
+                });
+            });
+        }
+
+        function saveAutocomplete() {
+            autoFields.forEach(field => {
+                const input = document.getElementById('input-' + field);
+                const val = input.value.trim();
+                if (!val) return;
+                let stored = JSON.parse(localStorage.getItem('ac_' + field) || '[]');
+                // Dodaj na początek, usuń duplikaty, ogranicz do 20
+                stored = stored.filter(v => v !== val);
+                stored.unshift(val);
+                stored = stored.slice(0, 20);
+                localStorage.setItem('ac_' + field, JSON.stringify(stored));
+            });
+        }
+
+        loadAutocomplete();
+
+        function printWithName() {
+            saveAutocomplete();
+            loadAutocomplete();
+            const originalTitle = document.title;
+            const sygnatura = document.getElementById('input-sygnatura').value.trim().replace(/[\/\.]/g, '-');
+            const zalacznik = document.getElementById('input-zalacznik').value.trim();
+            let name = 'Tablica';
+            if (sygnatura) name = sygnatura;
+            if (zalacznik) name += '_zal-' + zalacznik;
+            document.title = name;
+            window.print();
+            document.title = originalTitle;
+        }
+
+        function resetData() { if (confirm('Wyczyścić arkusz?')) location.reload(); }
+        window.addEventListener('resize', () => {
+            updateSelectorSize();
+            updateZoom();
+        });
+    </script>
+</body>
+
+</html>
