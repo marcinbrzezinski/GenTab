@@ -14,10 +14,13 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.SYNC_TOKEN }}
+          persist-credentials: false # Ważne: zapobiega konfliktom tokenów
 
       - name: Push to PPCFT
         run: |
           git remote add destination https://x-access-token:${{ secrets.SYNC_TOKEN }}@github.com/PPCFT/GenTab.git
-          # Wypychamy gałąź main oraz wszystkie tagi
-          git push destination main --force
-          git push destination --tags --force
+          # Wymuszamy pobranie najświeższych danych z Twojego repo
+          git fetch origin main
+          # Wypychamy HEAD (aktualny stan) bezpośrednio do main w organizacji
+          git push destination HEAD:main --force --tags
+
