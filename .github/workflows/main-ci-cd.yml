@@ -43,8 +43,9 @@ jobs:
       - name: Build Package
         run: |
           # Pakujemy plik index.html
-          zip -r GenTab-app.zip index.html README.md 2>/dev/null || zip -r GenTab-app.zip index.html
-          
+          zip -r GenTab-app.zip . -x "*.git*" ".github*" ".agents*"
+
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
