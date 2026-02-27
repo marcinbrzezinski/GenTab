@@ -1,0 +1,55 @@
+name: Main Repo CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Playwright Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm init -y && npm install -D @playwright/test @types/node
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Tests
+        run: npx playwright test
+
+  release:
+    name: Create GitHub Release
+    needs: test
+    # Uruchamiaj tylko dla tagów v* i tylko jeśli testy przeszły
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Package
+        run: |
+          # Pakujemy plik index.html
+          zip -r GenTab-app.zip index.html README.md 2>/dev/null || zip -r GenTab-app.zip index.html
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: GenTab-app.zip
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
