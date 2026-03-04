@@ -641,6 +641,10 @@
             border-bottom: 1px solid #f1f5f9;
         }
 
+        .w2-detail-row.active-detail {
+            background-color: #f1f5f9;
+        }
+
         .annot-tool-btn.active {
             background-color: #ef4444;
             color: white;
@@ -745,6 +749,124 @@
 
             .btn-remove-figure,
             .btn-remove-detail {
+                display: none !important;
+            }
+        }
+
+        /* ─── Faza 4 - Additional utility ─── */
+        .detail-zoom-canvas canvas,
+        #zoom-canvas {
+            cursor: crosshair;
+        }
+
+        /* ─── Dark Mode Base ─── */
+        body.dark-mode {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .sidebar {
+            background-color: #1e293b;
+            border-right-color: #334155;
+        }
+
+        body.dark-mode .panel-toggle {
+            background-color: #334155;
+            color: #f1f5f9;
+            border-color: #475569;
+        }
+
+        body.dark-mode .panel-body {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .sb-input,
+        body.dark-mode .sb-file-input,
+        body.dark-mode #annot-text-input {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            border-color: #475569;
+        }
+
+        body.dark-mode .sb-btn-secondary {
+            background-color: #334155;
+            color: #f1f5f9;
+            border-color: #475569;
+        }
+
+        body.dark-mode .sb-btn-secondary:hover {
+            background-color: #475569;
+        }
+
+        body.dark-mode .w2-detail-row,
+        body.dark-mode .annot-point-row {
+            border-bottom-color: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .w2-detail-row.active-detail {
+            background-color: #334155;
+        }
+
+        body.dark-mode .w2-detail-name {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .annot-point-coords {
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .btn-remove-figure {
+            border-color: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .dark-mode-label {
+            color: #f1f5f9;
+        }
+
+        /* ─── Dark Mode: Main Content Area ─── */
+        body.dark-mode .workspace {
+            background-color: #0f172a;
+        }
+
+        body.dark-mode .a4-page {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .a4-page.text-black {
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-mode .border-black {
+            border-color: #475569 !important;
+        }
+
+        body.dark-mode .border-gray-100,
+        body.dark-mode .border-gray-300 {
+            border-color: #475569 !important;
+        }
+
+        body.dark-mode .zoom-display-container,
+        body.dark-mode .detail-zoom-canvas {
+            background-color: #0f172a;
+            border-color: #475569;
+        }
+
+        body.dark-mode .figure-unit {
+            border-top-color: #475569;
+        }
+
+        @media print {
+            body.dark-mode {
+                background-color: transparent !important;
+                color: black !important;
+            }
+
+            .sidebar {
                 display: none !important;
             }
         }
@@ -927,7 +1049,11 @@
                         <label class="sb-label">Szczegóły</label>
                         <div id="w2-detail-list"></div>
                         <button class="sb-btn sb-btn-secondary" onclick="addDetail()" id="btn-add-detail"
-                            style="margin-top:6px;">+ Dodaj szczegół</button>
+                            style="margin-top:6px; margin-bottom:8px;">+ Dodaj szczegół</button>
+                        <label class="annot-checkbox-row">
+                            <input type="checkbox" id="w2-arrows-toggle" checked onchange="toggleArrows(this.checked)">
+                            <span>Pokaż strzałki szczegółów W2</span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -1097,6 +1223,15 @@
 
             <!-- Spacer pushes content up -->
             <div style="flex:1;"></div>
+
+            <div style="padding: 8px 16px; text-align: center; border-top: 1px solid #e2e8f0; margin-top: auto;">
+                <label
+                    style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; cursor: pointer; margin-bottom: 8px;">
+                    <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode(this.checked)">
+                    <span class="dark-mode-label" style="user-select: none;">🌙 Tryb Ciemny</span>
+                </label>
+            </div>
+
             <div
                 style="padding:8px 16px; text-align:center; font-size:9px; color:#94a3b8; border-top:1px solid #e2e8f0; background:#f8fafc;">
                 GenTab v0.2.2 &nbsp;·&nbsp; Generator Tablic Poglądowych
@@ -1491,6 +1626,9 @@
 
             // --- Render W1 annotations (points, rects, texts) ---
             if (currentVariant === 'w1') {
+                const dispW = canvasContainer.clientWidth || 300;
+                const scalePx = zoomCanvas.width / dispW;
+
                 const toRender = [...w1Points];
                 if (isDrawingAnnot && annotPreviewRect) toRender.push(annotPreviewRect);
 
@@ -1507,29 +1645,29 @@
 
                             if (type === 'point') {
                                 ctx.beginPath();
-                                ctx.arc(canvX, canvY, annotNumbering ? 7 : 4, 0, Math.PI * 2);
+                                ctx.arc(canvX, canvY, (annotNumbering ? 7 : 4) * scalePx, 0, Math.PI * 2);
                                 ctx.fillStyle = '#ef4444';
                                 ctx.fill();
                                 ctx.strokeStyle = '#ffffff';
-                                ctx.lineWidth = 1.5;
+                                ctx.lineWidth = 1.5 * scalePx;
                                 ctx.stroke();
                                 ctx.closePath();
                                 if (annotNumbering) {
-                                    ctx.font = 'bold 9px Inter, sans-serif';
+                                    ctx.font = `bold ${Math.round(9 * scalePx)}px Inter, sans-serif`;
                                     ctx.textAlign = 'center';
                                     ctx.textBaseline = 'middle';
                                     ctx.fillStyle = '#ffffff';
                                     ctx.fillText(String(ptIdx + 1), canvX, canvY);
                                 }
                             } else if (type === 'text') {
-                                ctx.font = 'bold 14px Inter, sans-serif';
+                                ctx.font = `bold ${Math.round(14 * scalePx)}px Inter, sans-serif`;
                                 ctx.textAlign = 'left';
                                 ctx.textBaseline = 'top';
                                 ctx.fillStyle = '#ef4444'; // red text
 
                                 // text outline for readability
                                 ctx.strokeStyle = '#ffffff';
-                                ctx.lineWidth = 3;
+                                ctx.lineWidth = 3 * scalePx;
                                 ctx.strokeText(pt.text, canvX, canvY);
                                 ctx.fillText(pt.text, canvX, canvY);
                             }
@@ -1547,21 +1685,21 @@
                             const canvH = relH * zoomCanvas.height;
 
                             ctx.strokeStyle = '#ffffff';
-                            ctx.lineWidth = 4;
+                            ctx.lineWidth = 4 * scalePx;
                             ctx.strokeRect(canvX, canvY, canvW, canvH);
                             ctx.strokeStyle = '#ef4444';
-                            ctx.lineWidth = 2;
+                            ctx.lineWidth = 2 * scalePx;
                             ctx.strokeRect(canvX, canvY, canvW, canvH);
 
                             if (annotNumbering && pt !== annotPreviewRect) { // don't number preview yet
                                 ctx.beginPath();
-                                ctx.arc(canvX, canvY, 7, 0, Math.PI * 2);
+                                ctx.arc(canvX, canvY, 7 * scalePx, 0, Math.PI * 2);
                                 ctx.fillStyle = '#ef4444';
                                 ctx.fill();
                                 ctx.strokeStyle = '#ffffff';
-                                ctx.lineWidth = 1.5;
+                                ctx.lineWidth = 1.5 * scalePx;
                                 ctx.stroke();
-                                ctx.font = 'bold 9px Inter, sans-serif';
+                                ctx.font = `bold ${Math.round(9 * scalePx)}px Inter, sans-serif`;
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 ctx.fillStyle = '#ffffff';
@@ -1899,6 +2037,12 @@
             _refreshAnnotSidebar();
         }
 
+        let w2ShowArrows = true;
+        function toggleArrows(checked) {
+            w2ShowArrows = checked;
+            if (currentVariant === 'w2') renderArrows();
+        }
+
         function toggleAnnotNumbering(checked) {
             annotNumbering = checked;
             if (currentVariant === 'w2') {
@@ -1986,8 +2130,11 @@
             const defaultFilters = { b: 100, c: 100, s: 100, sh: 0 };
             w2Details.push({ selectorEl: sel, canvasEl: canvas, ctx, blockEl: block, filters: defaultFilters, points: [] });
 
-            // Event listener for adding points
-            canvas.addEventListener('mousedown', (e) => _handleCanvasClick(idx, e));
+            // Event listener for adding annotations
+            canvas.addEventListener('mousedown', (e) => _handleAnnotMousedown(idx, e));
+            canvas.addEventListener('mousemove', (e) => _handleAnnotMousemove(idx, e));
+            canvas.addEventListener('mouseup', (e) => _handleAnnotMouseup(idx, e));
+            canvas.addEventListener('mouseleave', (e) => _handleAnnotMouseup(idx, e));
 
             try {
                 _refreshDetailGrid();
@@ -2047,7 +2194,7 @@
             w2Details.forEach((d, i) => {
                 const row = document.createElement('div');
                 row.className = 'w2-detail-row';
-                if (i === activeDetailIdx) row.style.backgroundColor = '#f1f5f9';
+                if (i === activeDetailIdx) row.classList.add('active-detail');
                 row.style.cursor = 'pointer';
                 row.onclick = () => _setActiveDetail(i);
 
@@ -2129,6 +2276,8 @@
             }
 
             // --- Render points (annotations) ---
+            const scalePx = d.canvasEl.width / dispW;
+
             const toRender = d.points ? [...d.points] : [];
             if (isDrawingAnnot && annotPreviewRect && idx === activeDetailIdx) {
                 toRender.push(annotPreviewRect);
@@ -2146,28 +2295,28 @@
 
                         if (type === 'point') {
                             d.ctx.beginPath();
-                            d.ctx.arc(canvX, canvY, annotNumbering ? 7 : 4, 0, Math.PI * 2);
+                            d.ctx.arc(canvX, canvY, (annotNumbering ? 7 : 4) * scalePx, 0, Math.PI * 2);
                             d.ctx.fillStyle = '#ef4444'; // red
                             d.ctx.fill();
                             d.ctx.strokeStyle = '#ffffff'; // white outline
-                            d.ctx.lineWidth = 1.5;
+                            d.ctx.lineWidth = 1.5 * scalePx;
                             d.ctx.stroke();
                             d.ctx.closePath();
 
                             if (annotNumbering) {
-                                d.ctx.font = 'bold 9px Inter, sans-serif';
+                                d.ctx.font = `bold ${Math.round(9 * scalePx)}px Inter, sans-serif`;
                                 d.ctx.textAlign = 'center';
                                 d.ctx.textBaseline = 'middle';
                                 d.ctx.fillStyle = '#ffffff';
                                 d.ctx.fillText(String(ptIdx + 1), canvX, canvY);
                             }
                         } else if (type === 'text') {
-                            d.ctx.font = 'bold 14px Inter, sans-serif';
+                            d.ctx.font = `bold ${Math.round(14 * scalePx)}px Inter, sans-serif`;
                             d.ctx.textAlign = 'left';
                             d.ctx.textBaseline = 'top';
                             d.ctx.fillStyle = '#ef4444';
                             d.ctx.strokeStyle = '#ffffff';
-                            d.ctx.lineWidth = 3;
+                            d.ctx.lineWidth = 3 * scalePx;
                             d.ctx.strokeText(pt.text, canvX, canvY);
                             d.ctx.fillText(pt.text, canvX, canvY);
                         }
@@ -2184,21 +2333,21 @@
                         const canvH = relH * d.canvasEl.height;
 
                         d.ctx.strokeStyle = '#ffffff';
-                        d.ctx.lineWidth = 4;
+                        d.ctx.lineWidth = 4 * scalePx;
                         d.ctx.strokeRect(canvX, canvY, canvW, canvH);
                         d.ctx.strokeStyle = '#ef4444';
-                        d.ctx.lineWidth = 2;
+                        d.ctx.lineWidth = 2 * scalePx;
                         d.ctx.strokeRect(canvX, canvY, canvW, canvH);
 
                         if (annotNumbering && pt !== annotPreviewRect) {
                             d.ctx.beginPath();
-                            d.ctx.arc(canvX, canvY, 7, 0, Math.PI * 2);
+                            d.ctx.arc(canvX, canvY, 7 * scalePx, 0, Math.PI * 2);
                             d.ctx.fillStyle = '#ef4444';
                             d.ctx.fill();
                             d.ctx.strokeStyle = '#ffffff';
-                            d.ctx.lineWidth = 1.5;
+                            d.ctx.lineWidth = 1.5 * scalePx;
                             d.ctx.stroke();
-                            d.ctx.font = 'bold 9px Inter, sans-serif';
+                            d.ctx.font = `bold ${Math.round(9 * scalePx)}px Inter, sans-serif`;
                             d.ctx.textAlign = 'center';
                             d.ctx.textBaseline = 'middle';
                             d.ctx.fillStyle = '#ffffff';
@@ -2271,7 +2420,7 @@
         // all coordinates relative to #content-flex-wrapper.
         function renderArrows() {
             arrowOverlay.innerHTML = '';
-            if (currentVariant !== 'w2' || !w2Details.length) {
+            if (currentVariant !== 'w2' || !w2Details.length || !w2ShowArrows) {
                 arrowOverlay.style.display = 'none';
                 return;
             }
@@ -2397,6 +2546,38 @@
         function _variantZoomHook() {
             if (currentVariant === 'w2') updateAllDetailZooms();
         }
+
+        // ─── UI / Shortcuts (Faza 4) ───────────────
+        function toggleDarkMode(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('gentab-darkmode', 'true');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('gentab-darkmode', 'false');
+            }
+        }
+
+        if (localStorage.getItem('gentab-darkmode') === 'true') {
+            document.body.classList.add('dark-mode');
+            const toggleEl = document.getElementById('dark-mode-toggle');
+            if (toggleEl) toggleEl.checked = true;
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;
+
+            // Ctrl + Z = Undo
+            if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undoLastPoint();
+            }
+            // Ctrl + Shift + X  OR  Ctrl + Delete = Clear all
+            if (e.ctrlKey && (e.key === 'Delete' || (e.shiftKey && e.key.toLowerCase() === 'x'))) {
+                e.preventDefault();
+                clearAllPoints();
+            }
+        });
     </script>
 </body>
 
