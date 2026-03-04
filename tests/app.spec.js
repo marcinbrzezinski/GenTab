@@ -15,7 +15,7 @@ test.describe('GenTab - Testy Funkcjonalne', () => {
 
   test('Sidebar powinien być widoczny i zawierać nazwę aplikacji', async ({ page }) => {
     await expect(page.locator('.sidebar-header-name')).toHaveText('GenTab');
-    await expect(page.locator('.sidebar-header-version')).toHaveText('v0.1.1');
+    await expect(page.locator('.sidebar-header-version')).toHaveText('v0.2.0');
   });
 
   test('Przycisk GitHub powinien mieć poprawny link', async ({ page }) => {
@@ -58,12 +58,13 @@ test.describe('GenTab - Testy Funkcjonalne', () => {
 
   test('Powinien przełączyć na wariant W2 i dodać szczegół', async ({ page }) => {
     await page.selectOption('#layout-variant', 'w2');
+    // Automatycznie tworzony jest pierwszy szczegół (1a)
     await expect(page.locator('#w2-controls')).toBeVisible();
 
     await page.click('button:has-text("Dodaj szczegół")');
-    // Sprawdź czy pojawił się selektor 1A (pierwszy domyślny list to a)
-    await expect(page.locator('.detail-selector')).toHaveCount(1);
-    await expect(page.locator('.detail-zoom-block')).toHaveCount(1);
+    // Mamy już 2 szczegóły: 1a (auto) i 1b (kliknięcie)
+    await expect(page.locator('.detail-selector')).toHaveCount(2);
+    await expect(page.locator('.detail-zoom-block')).toHaveCount(2);
   });
 
   // ─── Panele (collapse/expand) ─────────────────────────────────────────────
