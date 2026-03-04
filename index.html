@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator Tablicy Poglądowej Biegłego</title>
+    <title>GenTab – Generator Tablic Poglądowych</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @page {
@@ -18,6 +21,7 @@
             padding: 0;
             height: 100%;
             overflow: hidden;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         .app-layout {
@@ -33,15 +37,17 @@
         }
 
         .sidebar {
-            width: 330px;
-            min-width: 330px;
+            width: 340px;
+            min-width: 340px;
             height: 100vh;
             overflow-y: auto;
-            background: #1a1a2e;
-            color: #d1d5db;
+            background: #f8fafc;
+            color: #1e293b;
             font-size: 12px;
             display: flex;
             flex-direction: column;
+            border-left: 1px solid #e2e8f0;
+            box-shadow: -2px 0 12px rgba(0, 0, 0, 0.06);
         }
 
         .sidebar::-webkit-scrollbar {
@@ -49,29 +55,79 @@
         }
 
         .sidebar::-webkit-scrollbar-track {
-            background: #16213e;
+            background: #f1f5f9;
         }
 
         .sidebar::-webkit-scrollbar-thumb {
-            background: #4a5568;
+            background: #cbd5e1;
             border-radius: 3px;
         }
 
         /* ─── Sidebar sections ─── */
         .sidebar-header {
-            padding: 12px 16px;
-            background: #16213e;
-            border-bottom: 1px solid #2d3748;
-            font-size: 13px;
+            padding: 14px 16px 10px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .sidebar-header-title {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .sidebar-header-name {
+            font-size: 15px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #e53e3e;
-            text-align: center;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar-header-version {
+            font-size: 10px;
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 0.3px;
+        }
+
+        .sidebar-header-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .gh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 9px;
+            background: #0f172a;
+            color: #f1f5f9;
+            font-size: 10px;
+            font-weight: 600;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+
+        .gh-btn:hover {
+            background: #1e3a5f;
+        }
+
+        .gh-btn svg {
+            width: 13px;
+            height: 13px;
+            fill: currentColor;
+            flex-shrink: 0;
         }
 
         .panel-section {
-            border-bottom: 1px solid #2d3748;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .panel-toggle {
@@ -82,23 +138,24 @@
             padding: 10px 16px;
             background: transparent;
             border: none;
-            color: #e2e8f0;
+            color: #334155;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             cursor: pointer;
             transition: background 0.15s;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         .panel-toggle:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: #f1f5f9;
         }
 
         .panel-toggle .chevron {
             transition: transform 0.2s;
             font-size: 10px;
-            color: #718096;
+            color: #94a3b8;
         }
 
         .panel-toggle.collapsed .chevron {
@@ -124,11 +181,12 @@
         .sb-label {
             display: block;
             font-size: 10px;
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #a0aec0;
-            margin-bottom: 3px;
-            margin-top: 8px;
+            color: #64748b;
+            margin-bottom: 4px;
+            margin-top: 10px;
+            letter-spacing: 0.4px;
         }
 
         .sb-label:first-child {
@@ -137,69 +195,78 @@
 
         .sb-input {
             width: 100%;
-            padding: 5px 8px;
-            border: 1px solid #2d3748;
-            border-radius: 4px;
-            background: #16213e;
-            color: #e2e8f0;
+            box-sizing: border-box;
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #1e293b;
             font-size: 12px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             outline: none;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
 
         .sb-input:focus {
-            border-color: #e53e3e;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
 
         .sb-input::placeholder {
-            color: #4a5568;
+            color: #94a3b8;
         }
 
         select.sb-input {
             cursor: pointer;
         }
 
+        input[type="date"].sb-input {
+            color-scheme: light;
+        }
+
         .sb-slider-row {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 6px;
+            margin-top: 8px;
         }
 
         .sb-slider-label {
             font-size: 10px;
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #a0aec0;
+            color: #64748b;
             white-space: nowrap;
             width: 75px;
         }
 
         .sb-slider-row input[type="range"] {
             flex: 1;
-            accent-color: #e53e3e;
+            accent-color: #3b82f6;
             height: 4px;
         }
 
         .sb-slider-val {
-            font-family: monospace;
+            font-family: 'Inter', monospace;
             font-weight: 700;
             font-size: 11px;
-            min-width: 32px;
+            min-width: 36px;
             text-align: right;
-            color: #e2e8f0;
+            color: #1e293b;
         }
 
         .sb-btn {
             width: 100%;
-            padding: 10px;
+            padding: 9px;
             border: none;
-            border-radius: 5px;
-            font-weight: 700;
+            border-radius: 6px;
+            font-weight: 600;
             font-size: 12px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             text-transform: uppercase;
+            letter-spacing: 0.4px;
             cursor: pointer;
-            transition: background 0.15s, transform 0.1s;
+            transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
             margin-top: 6px;
         }
 
@@ -208,34 +275,37 @@
         }
 
         .sb-btn-primary {
-            background: #c53030;
+            background: #2563eb;
             color: white;
+            box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
         }
 
         .sb-btn-primary:hover {
-            background: #e53e3e;
+            background: #1d4ed8;
         }
 
         .sb-btn-secondary {
-            background: #2d3748;
-            color: #cbd5e0;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
         }
 
         .sb-btn-secondary:hover {
-            background: #4a5568;
+            background: #e2e8f0;
         }
 
         .sb-btn-reset {
             background: transparent;
-            border: 1px solid #4a5568;
-            color: #a0aec0;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
             padding: 4px 10px;
             font-size: 10px;
+            border-radius: 4px;
         }
 
         .sb-btn-reset:hover {
-            border-color: #e53e3e;
-            color: #e53e3e;
+            border-color: #2563eb;
+            color: #2563eb;
         }
 
         .sb-grid-2 {
@@ -246,24 +316,26 @@
 
         .sb-file-input {
             width: 100%;
+            box-sizing: border-box;
             padding: 8px;
-            background: #16213e;
-            border: 2px dashed #e53e3e;
+            background: #f8fafc;
+            border: 2px dashed #93c5fd;
             border-radius: 6px;
-            color: #a0aec0;
+            color: #64748b;
             font-size: 11px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             cursor: pointer;
             margin-top: 4px;
         }
 
         .sb-file-input::-webkit-file-upload-button {
-            background: #e53e3e;
+            background: #2563eb;
             color: white;
             border: none;
             padding: 4px 10px;
-            border-radius: 3px;
+            border-radius: 4px;
             font-size: 10px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             margin-right: 8px;
         }
@@ -547,7 +619,21 @@
 
         <!-- ═══ SIDEBAR (prawa strona) ═══ -->
         <aside class="sidebar no-print">
-            <div class="sidebar-header">Generator Tablic</div>
+            <div class="sidebar-header">
+                <div class="sidebar-header-title">
+                    <span class="sidebar-header-name">GenTab</span>
+                    <span class="sidebar-header-version">v0.1.1</span>
+                </div>
+                <div class="sidebar-header-actions">
+                    <a href="https://github.com/PPCFT/GenTab" target="_blank" rel="noopener" class="gh-btn">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+                        </svg>
+                        GitHub
+                    </a>
+                </div>
+            </div>
 
             <!-- ▼ DOKUMENT -->
             <div class="panel-section">
@@ -675,8 +761,8 @@
             <!-- Spacer pushes content up -->
             <div style="flex:1;"></div>
             <div
-                style="padding:8px 16px; text-align:center; font-size:9px; color:#4a5568; border-top:1px solid #2d3748;">
-                Generator Tablicy Poglądowej v2.0
+                style="padding:8px 16px; text-align:center; font-size:9px; color:#94a3b8; border-top:1px solid #e2e8f0; background:#f8fafc;">
+                GenTab v0.1.1 &nbsp;·&nbsp; Generator Tablic Poglądowych
             </div>
         </aside>
     </div>

@@ -7,6 +7,11 @@
 :icons: font
 :source-highlighter: highlight.js
 
+image:https://img.shields.io/badge/version-v0.1.1-brightgreen[Version]
+image:https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey[Platform]
+image:https://img.shields.io/badge/license-CC%20BY--NC%204.0-blue?logo=creativecommons&logoColor=white[License,link=https://creativecommons.org/licenses/by-nc/4.0/]
+image:https://img.shields.io/badge/GitHub-GenTab-181717?logo=github&logoColor=white[GitHub,link=https://github.com/PPCFT/GenTab]
+
 == Opis projektu
 
 link:{url-app}[🌐 Strona aplikacji: {url-app},window=_blank]
@@ -357,4 +362,11 @@ Wynikowy `tailwind.min.css` należy commitować do repozytorium.
 
 == Licencja
 
-Narzędzie wewnętrzne. Wszelkie prawa zastrzeżone.
+link:https://creativecommons.org/licenses/by-nc/4.0/[Creative Commons Uznanie autorstwa – Użycie niekomercyjne 4.0 Międzynarodowe (CC BY-NC 4.0)]
+
+Możesz swobodnie używać, udostępniać i adaptować niniejsze narzędzie pod warunkiem:
+
+* *Uznania autorstwa* — podania imienia autora i źródła
+* *Użytku niekomercyjnego* — zakaz wykorzystania w celach komercyjnych bez zgody autora
+
+Copyright © 2026 Marcin Brzeziński
