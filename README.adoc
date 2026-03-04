@@ -1,13 +1,13 @@
 = Generator Tablicy Poglądowej Biegłego
 :author: Marcin Brzeziński
-:revdate: 2026-02-28
+:revdate: 2026-03-04
 :url-app: https://ppcft.github.io/GenTab/
 :toc: left
 :toclevels: 3
 :icons: font
 :source-highlighter: highlight.js
 
-image:https://img.shields.io/badge/version-v0.1.1-brightgreen[Version]
+image:https://img.shields.io/badge/version-v0.2.0-brightgreen[Version]
 image:https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey[Platform]
 image:https://img.shields.io/badge/license-CC%20BY--NC%204.0-blue?logo=creativecommons&logoColor=white[License,link=https://creativecommons.org/licenses/by-nc/4.0/]
 image:https://img.shields.io/badge/GitHub-GenTab-181717?logo=github&logoColor=white[GitHub,link=https://github.com/PPCFT/GenTab]
@@ -21,10 +21,13 @@ Jednostronicowa aplikacja webowa (`index.html`) służąca do tworzenia *tablic 
 Aplikacja umożliwia:
 
 * Wgranie klatki dowodowej (obraz rastrowy)
-* Wyznaczenie obszaru szczegółowego za pomocą interaktywnego selektora
-* Wygenerowanie powiększenia z zachowaniem integralności pikselowej
-* Zastosowanie korekcji obrazu (jasność, kontrast, nasycenie, wyostrzenie USM)
-* Eksport do PDF z automatyczną nazwą pliku
+* Wybór wariantu arkusza:
+** **W1** (standardowy): Jedna klatka + jedno powiększenie
+** **W2** (szczegółowy): Jedna klatka + do 4 powiększeń (szczegółów 1a-1d) z oznaczeniem strzałkami
+* Wyznaczenie obszarów szczegółowych za pomocą interaktywnych selektorów
+* Wygenerowanie powiększeń z zachowaniem integralności pikselowej
+* Zastosowanie korekcji obrazu (jasność, kontrast, nasycenie, wyostrzenie USM) dla każdego szczegółu z osobna (w wariancie W2)
+* Eksport do PDF z automatyczną nazwą pliku i podziałem na strony
 * Bezstratny zapis powiększenia szczegółu do pliku PNG
 
 == Wersje aplikacji
@@ -62,7 +65,7 @@ Wygenerowany dokument PDF zawiera:
 | Element | Opis
 
 | Nagłówek
-| Nazwa jednostki (lewa strona), sygnatura akt + nr załącznika + typ dokumentu + data (prawa strona)
+| Nazwa jednostki (lewa strona), nr załącznika + typ dokumentu + numer opinii/sygnatura (prawa strona)
 
 | Rycina 1
 | Klatka źródłowa z zaznaczonym czerwonym selektorem wskazującym obszar szczegółowy
@@ -80,7 +83,7 @@ Wygenerowany dokument PDF zawiera:
 | Pole edytowalne do opisu obserwacji biegłego
 
 | Podpis
-| Imię, nazwisko i podpis biegłego / specjalisty (w zależności od typu dokumentu)
+| Imię, nazwisko i podpis biegłego / specjalisty oraz informacja o dacie wykonania tablicy (po lewej stronie)
 |===
 
 == Panel kontrolny — pola formularza
@@ -97,16 +100,16 @@ Wygenerowany dokument PDF zawiera:
 | Nazwa jednostki zlecającej (np. Laboratorium Kryminalistyczne KWP w ...)
 | ✓ localStorage
 
-| Sygnatura akt
-| Sygnatura sprawy (np. II K 456/24, H.4497.25)
+| Sygnatura / Nr opinii
+| Numer sprawy lub opinii (np. II K 456/24, H.4426.26). Wyświetlany w nagłówku obok numeru załącznika.
 | ✓ localStorage
 
 | Nr załącznika
 | Numer kolejny załącznika
 | ✓ localStorage
 
-| Data sporządzenia
-| Data w formacie kalendarza
+| Data wykonania
+| Data w formacie kalendarza. Wyświetlana w stopce („Wykonano w dniu...”)
 | —
 
 | Źródło (Plik)

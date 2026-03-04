@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator Tablicy Poglądowej Biegłego</title>
+    <title>GenTab – Generator Tablic Poglądowych</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="tailwind.min.css">
     <style>
         @page {
@@ -18,6 +21,7 @@
             padding: 0;
             height: 100%;
             overflow: hidden;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         .app-layout {
@@ -33,15 +37,17 @@
         }
 
         .sidebar {
-            width: 330px;
-            min-width: 330px;
+            width: 340px;
+            min-width: 340px;
             height: 100vh;
             overflow-y: auto;
-            background: #1a1a2e;
-            color: #d1d5db;
+            background: #f8fafc;
+            color: #1e293b;
             font-size: 12px;
             display: flex;
             flex-direction: column;
+            border-left: 1px solid #e2e8f0;
+            box-shadow: -2px 0 12px rgba(0, 0, 0, 0.06);
         }
 
         .sidebar::-webkit-scrollbar {
@@ -49,29 +55,79 @@
         }
 
         .sidebar::-webkit-scrollbar-track {
-            background: #16213e;
+            background: #f1f5f9;
         }
 
         .sidebar::-webkit-scrollbar-thumb {
-            background: #4a5568;
+            background: #cbd5e1;
             border-radius: 3px;
         }
 
         /* ─── Sidebar sections ─── */
         .sidebar-header {
-            padding: 12px 16px;
-            background: #16213e;
-            border-bottom: 1px solid #2d3748;
-            font-size: 13px;
+            padding: 14px 16px 10px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .sidebar-header-title {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .sidebar-header-name {
+            font-size: 15px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #e53e3e;
-            text-align: center;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar-header-version {
+            font-size: 10px;
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 0.3px;
+        }
+
+        .sidebar-header-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .gh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 9px;
+            background: #0f172a;
+            color: #f1f5f9;
+            font-size: 10px;
+            font-weight: 600;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+
+        .gh-btn:hover {
+            background: #1e3a5f;
+        }
+
+        .gh-btn svg {
+            width: 13px;
+            height: 13px;
+            fill: currentColor;
+            flex-shrink: 0;
         }
 
         .panel-section {
-            border-bottom: 1px solid #2d3748;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .panel-toggle {
@@ -82,23 +138,24 @@
             padding: 10px 16px;
             background: transparent;
             border: none;
-            color: #e2e8f0;
+            color: #334155;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             cursor: pointer;
             transition: background 0.15s;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         .panel-toggle:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: #f1f5f9;
         }
 
         .panel-toggle .chevron {
             transition: transform 0.2s;
             font-size: 10px;
-            color: #718096;
+            color: #94a3b8;
         }
 
         .panel-toggle.collapsed .chevron {
@@ -124,11 +181,12 @@
         .sb-label {
             display: block;
             font-size: 10px;
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #a0aec0;
-            margin-bottom: 3px;
-            margin-top: 8px;
+            color: #64748b;
+            margin-bottom: 4px;
+            margin-top: 10px;
+            letter-spacing: 0.4px;
         }
 
         .sb-label:first-child {
@@ -137,69 +195,78 @@
 
         .sb-input {
             width: 100%;
-            padding: 5px 8px;
-            border: 1px solid #2d3748;
-            border-radius: 4px;
-            background: #16213e;
-            color: #e2e8f0;
+            box-sizing: border-box;
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #1e293b;
             font-size: 12px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             outline: none;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
 
         .sb-input:focus {
-            border-color: #e53e3e;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
 
         .sb-input::placeholder {
-            color: #4a5568;
+            color: #94a3b8;
         }
 
         select.sb-input {
             cursor: pointer;
         }
 
+        input[type="date"].sb-input {
+            color-scheme: light;
+        }
+
         .sb-slider-row {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 6px;
+            margin-top: 8px;
         }
 
         .sb-slider-label {
             font-size: 10px;
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #a0aec0;
+            color: #64748b;
             white-space: nowrap;
             width: 75px;
         }
 
         .sb-slider-row input[type="range"] {
             flex: 1;
-            accent-color: #e53e3e;
+            accent-color: #3b82f6;
             height: 4px;
         }
 
         .sb-slider-val {
-            font-family: monospace;
+            font-family: 'Inter', monospace;
             font-weight: 700;
             font-size: 11px;
-            min-width: 32px;
+            min-width: 36px;
             text-align: right;
-            color: #e2e8f0;
+            color: #1e293b;
         }
 
         .sb-btn {
             width: 100%;
-            padding: 10px;
+            padding: 9px;
             border: none;
-            border-radius: 5px;
-            font-weight: 700;
+            border-radius: 6px;
+            font-weight: 600;
             font-size: 12px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             text-transform: uppercase;
+            letter-spacing: 0.4px;
             cursor: pointer;
-            transition: background 0.15s, transform 0.1s;
+            transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
             margin-top: 6px;
         }
 
@@ -208,34 +275,37 @@
         }
 
         .sb-btn-primary {
-            background: #c53030;
+            background: #2563eb;
             color: white;
+            box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
         }
 
         .sb-btn-primary:hover {
-            background: #e53e3e;
+            background: #1d4ed8;
         }
 
         .sb-btn-secondary {
-            background: #2d3748;
-            color: #cbd5e0;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
         }
 
         .sb-btn-secondary:hover {
-            background: #4a5568;
+            background: #e2e8f0;
         }
 
         .sb-btn-reset {
             background: transparent;
-            border: 1px solid #4a5568;
-            color: #a0aec0;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
             padding: 4px 10px;
             font-size: 10px;
+            border-radius: 4px;
         }
 
         .sb-btn-reset:hover {
-            border-color: #e53e3e;
-            color: #e53e3e;
+            border-color: #2563eb;
+            color: #2563eb;
         }
 
         .sb-grid-2 {
@@ -246,24 +316,26 @@
 
         .sb-file-input {
             width: 100%;
+            box-sizing: border-box;
             padding: 8px;
-            background: #16213e;
-            border: 2px dashed #e53e3e;
+            background: #f8fafc;
+            border: 2px dashed #93c5fd;
             border-radius: 6px;
-            color: #a0aec0;
+            color: #64748b;
             font-size: 11px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             cursor: pointer;
             margin-top: 4px;
         }
 
         .sb-file-input::-webkit-file-upload-button {
-            background: #e53e3e;
+            background: #2563eb;
             color: white;
             border: none;
             padding: 4px 10px;
-            border-radius: 3px;
+            border-radius: 4px;
             font-size: 10px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             margin-right: 8px;
         }
@@ -322,12 +394,14 @@
             }
 
             .workspace {
+                display: block !important;
                 padding: 0;
                 background: white;
                 overflow: visible;
             }
 
             .a4-page {
+                display: block !important;
                 margin: 0 !important;
                 box-shadow: none !important;
                 width: 100% !important;
@@ -337,7 +411,11 @@
                 background: white !important;
             }
 
-            .zoom-section-wrapper.force-page-break {
+            #content-flex-wrapper {
+                display: block !important;
+            }
+
+            .force-page-break {
                 page-break-before: always;
             }
 
@@ -345,10 +423,17 @@
                 border-top: none !important;
             }
 
-            .zoom-selector {
-                box-shadow: none !important;
-                border: 2px solid red !important;
+            .detail-selector {
                 background: transparent !important;
+                box-shadow: none !important;
+            }
+
+            #w2-methodologies-container {
+                display: block !important;
+                page-break-before: always !important;
+                break-before: page !important;
+                margin-top: 20mm !important;
+                /* Gap in print for separate A4 page */
             }
         }
 
@@ -427,6 +512,176 @@
             display: block;
             image-rendering: pixelated;
         }
+
+        /* ─── W2: Colored detail selectors ─── */
+        .detail-selector {
+            position: absolute;
+            cursor: move;
+            z-index: 10;
+        }
+
+        .selector-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 700;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            padding: 0 3px;
+            pointer-events: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Arrow overlay SVG (within #wrapper) */
+        /* Arrow overlay — spans whole content-flex-wrapper */
+        #arrow-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            overflow: visible;
+        }
+
+        /* Allow SVG arrows to span image + details */
+        #content-flex-wrapper {
+            position: relative;
+        }
+
+        /* W2 details grid */
+        #w2-details-container {
+            display: grid;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        #w2-details-container.cols-1 {
+            grid-template-columns: 1fr;
+        }
+
+        #w2-details-container.cols-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .detail-zoom-block {
+            page-break-inside: avoid;
+        }
+
+        .detail-zoom-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .detail-zoom-canvas {
+            border: 1px solid black;
+            width: 100%;
+            background: #fff;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            image-rendering: pixelated;
+        }
+
+        .detail-zoom-canvas canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* W3 figure units */
+        .figure-unit {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 2px solid black;
+            position: relative;
+        }
+
+        .figure-unit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+
+        .btn-remove-figure {
+            background: none;
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 10px;
+            padding: 1px 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-remove-figure:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        /* Sidebar variant helpers */
+        .w2-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .w2-detail-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .w2-detail-name {
+            flex: 1;
+            font-size: 11px;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .btn-remove-detail {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 13px;
+            padding: 1px 4px;
+            line-height: 1;
+        }
+
+        .btn-remove-detail:hover {
+            color: #ef4444;
+        }
+
+        #w2-controls,
+        #w3-controls {
+            margin-top: 8px;
+        }
+
+        @media print {
+
+            .btn-remove-figure,
+            .btn-remove-detail {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
@@ -439,9 +694,8 @@
                 <div class="flex justify-between border-b-2 border-black pb-1 mb-2">
                     <div class="text-[10px] font-bold uppercase" id="display-jednostka"></div>
                     <div class="text-[10px] font-bold uppercase text-right">
-                        <span id="display-sygnatura"></span><br>
                         ZAŁĄCZNIK NR <span id="display-zalacznik">X</span>
-                        DO <span id="display-typ-dokumentu">OPINII</span> Z DNIA <span id="display-data">________</span>
+                        DO <span id="display-typ-dokumentu">OPINII</span> <span id="display-sygnatura">________</span>
                     </div>
                 </div>
 
@@ -452,9 +706,21 @@
 
                     <!-- Główna klatka -->
                     <div class="mb-2 rycina-section">
-                        <div class="font-bold mb-1 text-[11px] uppercase">Rycina 1. Klatka źródłowa z zaznaczonym
-                            obszarem
-                            szczegółowym</div>
+                        <div class="font-bold mb-2 text-[11px] uppercase">Rycina 1. Klatka źródłowa z zaznaczonym
+                            obszarem szczegółowym</div>
+
+                        <div class="rycina-meta mb-2 grid grid-cols-1 gap-0.5 text-[10px]">
+                            <div class="flex"><span class="font-bold w-36 uppercase">Nazwa pliku:</span> <span
+                                    contenteditable="true" id="meta-file"
+                                    class="border-b border-gray-100 flex-1">---</span></div>
+                            <div class="flex"><span class="font-bold w-36 uppercase">Znacznik czasu:</span> <span
+                                    contenteditable="true" class="border-b border-gray-100 flex-1">HH:MM:SS.CCC</span>
+                            </div>
+                            <div class="flex"><span class="font-bold w-36 uppercase">Opis:</span> <span
+                                    contenteditable="true" id="desc-location"
+                                    class="italic border-b border-gray-300 flex-1">...</span></div>
+                        </div>
+
                         <div id="wrapper"
                             class="relative inline-block overflow-hidden border border-black bg-black mx-auto"
                             style="max-width: 90%; display: block;">
@@ -462,19 +728,6 @@
                                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450'%3E%3Crect width='100%25' height='100%25' fill='%23cccccc'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='24' fill='%23666666' text-anchor='middle' dy='.3em'%3EWGRAJ OBRAZ%3C/text%3E%3C/svg%3E"
                                 class="block w-full h-auto">
                             <div id="selector" class="zoom-selector"></div>
-                        </div>
-
-                        <div class="rycina-meta mt-1 grid grid-cols-1 gap-0.5 text-[10px]">
-                            <div class="flex"><span class="font-bold w-36 uppercase">Nazwa pliku:</span> <span
-                                    contenteditable="true" id="meta-file"
-                                    class="border-b border-gray-100 flex-1">---</span>
-                            </div>
-                            <div class="flex"><span class="font-bold w-36 uppercase">Znacznik czasu:</span> <span
-                                    contenteditable="true" class="border-b border-gray-100 flex-1">HH:MM:SS.CCC</span>
-                            </div>
-                            <div class="flex"><span class="font-bold w-36 uppercase">Opis:</span> <span
-                                    contenteditable="true" id="desc-location"
-                                    class="italic border-b border-gray-300 flex-1">...</span></div>
                         </div>
                     </div>
 
@@ -485,10 +738,9 @@
                             class="print-only-header justify-between border-b-2 border-black pb-1 mb-2">
                             <div class="text-[10px] font-bold uppercase display-jednostka-mirror"></div>
                             <div class="text-[10px] font-bold uppercase text-right">
-                                <span class="display-sygnatura-mirror"></span><br>
                                 ZAŁĄCZNIK NR <span class="display-zalacznik-mirror">X</span>
-                                DO <span class="display-typ-dokumentu-mirror">OPINII</span> Z DNIA <span
-                                    class="display-data-mirror">________</span>
+                                DO <span class="display-typ-dokumentu-mirror">OPINII</span> <span
+                                    class="display-sygnatura-mirror">________</span>
                             </div>
                         </div>
 
@@ -532,7 +784,9 @@
                                 </div>
                             </div>
 
-                            <div class="mt-16 flex justify-end">
+                            <div class="mt-24 flex justify-between items-end">
+                                <div class="text-[10px] uppercase font-bold pb-1">Wykonano w dniu <span
+                                        id="display-data">________</span> roku</div>
                                 <div class="text-center w-72 border-t border-black pt-1">
                                     <p class="text-[8px] uppercase font-bold tracking-tighter" id="display-podpis">Imię,
                                         Nazwisko i
@@ -541,13 +795,76 @@
                             </div>
                         </div>
                     </div>
+                    <!-- W2: multiple detail zooms -->
+                    <div id="w2-details-container" style="display:none;"></div>
+
+                    <!-- Arrow overlay covering image + detail panels -->
+                    <svg id="arrow-overlay" xmlns="http://www.w3.org/2000/svg" style="display:none;"></svg>
+                </div><!-- /content-flex-wrapper -->
+            </div><!-- /a4-page -->
+
+            <!-- W2: methodologies container for print backpage (standalone A4) -->
+            <div id="w2-methodologies-container" class="a4-page force-page-break" style="display:none;">
+                <div class="print-only-header justify-between border-b-2 border-black pb-1 mb-2">
+                    <div class="text-[10px] font-bold uppercase display-jednostka-mirror"></div>
+                    <div class="text-[10px] font-bold uppercase text-right">
+                        ZAŁĄCZNIK NR <span class="display-zalacznik-mirror">X</span>
+                        DO <span class="display-typ-dokumentu-mirror">OPINII</span> <span
+                            class="display-sygnatura-mirror">________</span>
+                    </div>
                 </div>
-            </div><!-- /content-flex-wrapper -->
+                <div class="font-bold mb-2 text-[12px] uppercase">Metodyka opracowania szczegółów (Rycina 1)
+                </div>
+                <div id="w2-methodologies-list" class="grid grid-cols-1 gap-2"></div>
+                <div class="mt-20 flex justify-between items-end">
+                    <div class="text-[10px] uppercase font-bold pb-1">Wykonano w dniu <span
+                            class="display-data-mirror">________</span> roku</div>
+                    <div class="text-center w-72 border-t border-black pt-1">
+                        <p class="text-[8px] uppercase font-bold tracking-tighter display-podpis-mirror">Imię,
+                            Nazwisko i Podpis Biegłego</p>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- ═══ SIDEBAR (prawa strona) ═══ -->
         <aside class="sidebar no-print">
-            <div class="sidebar-header">Generator Tablic</div>
+            <div class="sidebar-header">
+                <div class="sidebar-header-title">
+                    <span class="sidebar-header-name">GenTab</span>
+                    <span class="sidebar-header-version">v0.1.1</span>
+                </div>
+                <div class="sidebar-header-actions">
+                    <a href="https://github.com/PPCFT/GenTab" target="_blank" rel="noopener" class="gh-btn">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+                        </svg>
+                        GitHub
+                    </a>
+                </div>
+            </div>
+
+            <!-- ▼ UKŁAD -->
+            <div class="panel-section">
+                <button class="panel-toggle" onclick="togglePanel(this)">
+                    <span>📐 Układ</span><span class="chevron">▼</span>
+                </button>
+                <div class="panel-body">
+                    <label class="sb-label" style="margin-top:0">Wariant arkusza</label>
+                    <select id="layout-variant" class="sb-input" onchange="setVariant(this.value)">
+                        <option value="w1">W1 — Rycina 1 + 1a (standard)</option>
+                        <option value="w2">W2 — Rycina 1 + kilka szczegółów</option>
+                    </select>
+                    <!-- W2 controls -->
+                    <div id="w2-controls" style="display:none;">
+                        <label class="sb-label">Szczegóły</label>
+                        <div id="w2-detail-list"></div>
+                        <button class="sb-btn sb-btn-secondary" onclick="addDetail()" id="btn-add-detail"
+                            style="margin-top:6px;">+ Dodaj szczegół</button>
+                    </div>
+                </div>
+            </div>
 
             <!-- ▼ DOKUMENT -->
             <div class="panel-section">
@@ -675,8 +992,8 @@
             <!-- Spacer pushes content up -->
             <div style="flex:1;"></div>
             <div
-                style="padding:8px 16px; text-align:center; font-size:9px; color:#4a5568; border-top:1px solid #2d3748;">
-                Generator Tablicy Poglądowej v2.0
+                style="padding:8px 16px; text-align:center; font-size:9px; color:#94a3b8; border-top:1px solid #e2e8f0; background:#f8fafc;">
+                GenTab v0.1.1 &nbsp;·&nbsp; Generator Tablic Poglądowych
             </div>
         </aside>
     </div>
@@ -735,7 +1052,7 @@
             updateMirrors('display-jednostka-mirror', e.target.value);
         });
         document.getElementById('input-sygnatura').addEventListener('input', e => {
-            const val = e.target.value ? 'SYGNATURA: ' + e.target.value : '';
+            const val = e.target.value || '________';
             document.getElementById('display-sygnatura').innerText = val;
             updateMirrors('display-sygnatura-mirror', val);
         });
@@ -744,8 +1061,9 @@
             updateMirrors('display-zalacznik-mirror', e.target.value);
         });
         document.getElementById('input-data').addEventListener('input', e => {
-            document.getElementById('display-data').innerText = e.target.value;
-            updateMirrors('display-data-mirror', e.target.value);
+            const val = e.target.value || '________';
+            document.getElementById('display-data').innerText = val;
+            updateMirrors('display-data-mirror', val);
         });
         document.getElementById('input-plik').addEventListener('input', e => document.getElementById('meta-file').innerText = e.target.value);
 
@@ -784,28 +1102,47 @@
         function updateSelectorSize() {
             if (!mainFrame.clientWidth) return;
             const scale = zoomRange.value;
-            const containerRatio = getCanvasProportions();
+
+            // Determine which selector to update
+            let activeSel = selector;
+            let activeContainerRatio = getCanvasProportions();
+            if (currentVariant === 'w2' && w2Details[activeDetailIdx]) {
+                activeSel = w2Details[activeDetailIdx].selectorEl;
+                // detail canvases use image proportions to avoid distortion
+                activeContainerRatio = mainFrame.naturalWidth / mainFrame.naturalHeight;
+            }
+
             const widthPct = (100 / scale);
             const newWidthPx = mainFrame.clientWidth / scale;
-            const newHeightPx = newWidthPx / containerRatio;
+            const newHeightPx = newWidthPx / activeContainerRatio;
             const heightPct = (newHeightPx / wrapper.clientHeight) * 100;
 
-            const currentLeft = parseFloat(selector.style.left) || 0;
-            const currentTop = parseFloat(selector.style.top) || 0;
-            const currentW = parseFloat(selector.style.width) || widthPct;
-            const currentH = parseFloat(selector.style.height) || heightPct;
-            const centerX = currentLeft + currentW / 2;
-            const centerY = currentTop + currentH / 2;
+            // Normalize any left/top/width/height (including 'px') into percentage
+            const getPct = (str, maxPx) => {
+                if (!str) return 0;
+                if (str.endsWith('px')) return (parseFloat(str) / maxPx) * 100;
+                return parseFloat(str) || 0;
+            };
 
-            selector.style.width = widthPct + '%';
-            selector.style.height = heightPct + '%';
+            const currentLeftPct = getPct(activeSel.style.left, wrapper.clientWidth);
+            const currentTopPct = getPct(activeSel.style.top, wrapper.clientHeight);
+            let currentWPct = getPct(activeSel.style.width, wrapper.clientWidth);
+            if (!currentWPct) currentWPct = widthPct;
+            let currentHPct = getPct(activeSel.style.height, wrapper.clientHeight);
+            if (!currentHPct) currentHPct = heightPct;
+
+            const centerX = currentLeftPct + currentWPct / 2;
+            const centerY = currentTopPct + currentHPct / 2;
+
+            activeSel.style.width = widthPct + '%';
+            activeSel.style.height = heightPct + '%';
 
             const maxLeftPct = 100 - widthPct;
             const maxTopPct = 100 - heightPct;
             const newLeft = Math.max(0, Math.min(centerX - widthPct / 2, maxLeftPct));
             const newTop = Math.max(0, Math.min(centerY - heightPct / 2, maxTopPct));
-            selector.style.left = newLeft + '%';
-            selector.style.top = newTop + '%';
+            activeSel.style.left = newLeft + '%';
+            activeSel.style.top = newTop + '%';
         }
 
         // ─── Image upload ───
@@ -881,10 +1218,13 @@
         const corrSharpenVal = document.getElementById('corr-sharpen-val');
         const corrMethodologyText = document.getElementById('corr-methodology-text');
 
-        function getCorrectionFilter() {
-            const b = corrBrightness.value;
-            const c = corrContrast.value;
-            const s = corrSaturation.value;
+        function getCorrectionFilter(customFilters = null) {
+            let b, c, s;
+            if (customFilters) {
+                b = customFilters.b; c = customFilters.c; s = customFilters.s;
+            } else {
+                b = corrBrightness.value; c = corrContrast.value; s = corrSaturation.value;
+            }
             return `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
         }
 
@@ -950,13 +1290,24 @@
             corrContrast.value = 100; corrContrastVal.textContent = '100';
             corrSaturation.value = 100; corrSaturationVal.textContent = '100';
             corrSharpen.value = 0; corrSharpenVal.textContent = '0.0';
-            updateZoom();
+            _updateStoredFilters();
         }
 
-        corrBrightness.addEventListener('input', () => { corrBrightnessVal.textContent = corrBrightness.value; updateZoom(); });
-        corrContrast.addEventListener('input', () => { corrContrastVal.textContent = corrContrast.value; updateZoom(); });
-        corrSaturation.addEventListener('input', () => { corrSaturationVal.textContent = corrSaturation.value; updateZoom(); });
-        corrSharpen.addEventListener('input', () => { corrSharpenVal.textContent = parseFloat(corrSharpen.value).toFixed(1); updateZoom(); });
+        function _updateStoredFilters() {
+            if (currentVariant === 'w2' && w2Details[activeDetailIdx]) {
+                const f = w2Details[activeDetailIdx].filters;
+                f.b = corrBrightness.value;
+                f.c = corrContrast.value;
+                f.s = corrSaturation.value;
+                f.sh = parseFloat(corrSharpen.value);
+            }
+            updateZoom(); // triggers _variantZoomHook
+        }
+
+        corrBrightness.addEventListener('input', () => { corrBrightnessVal.textContent = corrBrightness.value; _updateStoredFilters(); });
+        corrContrast.addEventListener('input', () => { corrContrastVal.textContent = corrContrast.value; _updateStoredFilters(); });
+        corrSaturation.addEventListener('input', () => { corrSaturationVal.textContent = corrSaturation.value; _updateStoredFilters(); });
+        corrSharpen.addEventListener('input', () => { corrSharpenVal.textContent = parseFloat(corrSharpen.value).toFixed(1); _updateStoredFilters(); });
 
         // ─── Zoom rendering ───
         function updateZoom() {
@@ -1002,6 +1353,8 @@
                 zoomCanvas.style.filter = getCorrectionFilter();
             }
             updateCorrectionMethodology();
+            // Hook for variant system
+            if (typeof _variantZoomHook === 'function') _variantZoomHook();
         }
 
         // ─── Autocomplete (localStorage) ───
@@ -1093,7 +1446,419 @@
         window.addEventListener('resize', () => {
             updateSelectorSize();
             updateZoom();
+            if (currentVariant === 'w2') renderArrows();
         });
+
+        // ════════════════════════════════════════════════════════════════════
+        // ─── VARIANT SYSTEM (W1 / W2 / W3) ──────────────────────────────────
+        // ════════════════════════════════════════════════════════════════════
+
+        const DETAIL_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b'];
+        const DETAIL_LETTERS = ['a', 'b', 'c', 'd'];
+        let currentVariant = 'w1';
+        let w2Details = [];      // [{selectorEl, canvasEl, ctx, blockEl}]
+        let activeDetailIdx = 0; // index of the active detail in W2
+
+        const w2Container = document.getElementById('w2-details-container');
+        const w2Controls = document.getElementById('w2-controls');
+        const w2DetailList = document.getElementById('w2-detail-list');
+        const zoomSectionEl = document.getElementById('zoom-section-wrapper');
+        const arrowOverlay = document.getElementById('arrow-overlay');
+        const arrowDefs = document.getElementById('arrow-defs');
+        const w2MethodologiesContainer = document.getElementById('w2-methodologies-container');
+        const w2MethodologiesList = document.getElementById('w2-methodologies-list');
+
+        // ─── setVariant ───────────────────────────────────────────────────────
+        function setVariant(v) {
+            currentVariant = v;
+
+            // Reset W2
+            while (w2Details.length) _destroyDetail(0);
+            w2Container.style.display = 'none';
+            w2Container.innerHTML = '';
+            w2Controls.style.display = 'none';
+            document.getElementById('selector').style.display = '';
+            arrowOverlay.innerHTML = '<defs id="arrow-defs"></defs>';
+
+            if (v === 'w1') {
+                zoomSectionEl.style.display = '';
+                w2MethodologiesContainer.style.display = 'none';
+            } else if (v === 'w2') {
+                zoomSectionEl.style.display = 'none';
+                w2Container.style.display = 'grid';
+                w2Controls.style.display = 'block';
+                w2MethodologiesContainer.style.display = 'block';
+                document.getElementById('selector').style.display = 'none';
+                activeDetailIdx = 0;
+                // Auto-create first detail (1a)
+                _createDetail();
+            }
+        }
+
+        // ═══ W2 DETAILS ══════════════════════════════════════════════════════
+
+        function addDetail() {
+            if (w2Details.length >= 4) return;
+            _createDetail();
+        }
+
+        function _createDetail() {
+            const idx = w2Details.length;
+            if (idx >= 4) return;
+            const color = DETAIL_COLORS[idx];
+            const letter = DETAIL_LETTERS[idx];
+            const label = '1' + letter.toUpperCase();
+
+            // ── Selector on main image ──
+            const sel = document.createElement('div');
+            sel.className = 'detail-selector';
+            sel.style.cssText = `border:3px solid ${color}; background:${color}18; left:${10 + idx * 5}%; top:${10 + idx * 5}%; width:25%; height:25%;`;
+
+            wrapper.appendChild(sel);
+
+            sel.addEventListener('mousedown', () => _setActiveDetail(idx));
+            _makeDraggable(sel, () => { _updateDetailZoom(idx); renderArrows(); });
+
+            // ── Canvas block in grid ──
+            const block = document.createElement('div');
+            block.className = 'detail-zoom-block';
+            block.dataset.idx = idx;
+            block.innerHTML = `
+                <div class="detail-zoom-label" style="color:${color};">Rycina ${label}. Powiększenie szczegółu</div>
+                <div class="detail-zoom-canvas" id="detail-canvas-container-${idx}">
+                    <canvas id="detail-canvas-${idx}"></canvas>
+                </div>
+                <div style="margin-top:4px;display:flex;gap:4px;font-size:10px;color:#64748b;">
+                    <span contenteditable="true" style="flex:1;border-bottom:1px solid #e2e8f0;padding:1px 2px;min-width:0;">Opis szczegółu ${label}…</span>
+                </div>`;
+            w2Container.appendChild(block);
+
+            const canvas = document.getElementById('detail-canvas-' + idx);
+            const ctx = canvas.getContext('2d');
+            const defaultFilters = { b: 100, c: 100, s: 100, sh: 0 };
+            w2Details.push({ selectorEl: sel, canvasEl: canvas, ctx, blockEl: block, filters: defaultFilters });
+
+            _refreshDetailGrid();
+            _refreshDetailSidebar();
+
+            // Set as active to force correct proportions and initial zoom render
+            _setActiveDetail(idx);
+
+            if (mainFrame.complete && mainFrame.naturalWidth > 0) {
+                _refreshW2Methodologies();
+            }
+        }
+
+        function removeDetail(idx) {
+            if (w2Details.length <= 1) return; // keep at least 1a
+            _destroyDetail(idx);
+            if (activeDetailIdx >= w2Details.length) activeDetailIdx = Math.max(0, w2Details.length - 1);
+            _refreshDetailGrid();
+            _refreshDetailSidebar();
+            _setActiveDetail(activeDetailIdx);
+            renderArrows();
+            _refreshW2Methodologies();
+        }
+
+        function _destroyDetail(idx) {
+            const d = w2Details[idx];
+            if (!d) return;
+            d.selectorEl.remove();
+            d.blockEl.remove();
+            w2Details.splice(idx, 1);
+            // Re-index remaining details
+            w2Details.forEach((det, i) => {
+                det.selectorEl.querySelector('.selector-badge').textContent = '1' + DETAIL_LETTERS[i].toUpperCase();
+                det.selectorEl.style.borderColor = DETAIL_COLORS[i];
+                det.selectorEl.style.background = DETAIL_COLORS[i] + '18';
+                det.selectorEl.querySelector('.selector-badge').style.background = DETAIL_COLORS[i];
+                det.blockEl.dataset.idx = i;
+                det.blockEl.querySelector('.detail-zoom-label').style.color = DETAIL_COLORS[i];
+                det.blockEl.querySelector('.detail-zoom-label').textContent =
+                    'Rycina 1' + DETAIL_LETTERS[i].toUpperCase() + '. Powiększenie szczegółu';
+            });
+        }
+
+        function _refreshDetailGrid() {
+            const n = w2Details.length;
+            w2Container.className = n >= 2 ? 'cols-2' : 'cols-1';
+            if (btnAddDetail) btnAddDetail.style.display = n >= 4 ? 'none' : '';
+        }
+
+        function _refreshDetailSidebar() {
+            w2DetailList.innerHTML = '';
+            w2Details.forEach((d, i) => {
+                const row = document.createElement('div');
+                row.className = 'w2-detail-row';
+                if (i === activeDetailIdx) row.style.backgroundColor = '#f1f5f9';
+                row.style.cursor = 'pointer';
+                row.onclick = () => _setActiveDetail(i);
+
+                const canRemove = i > 0;
+                row.innerHTML = `<span class="w2-detail-dot" style="background:${DETAIL_COLORS[i]}"></span>
+                    <span class="w2-detail-name" style="${i === activeDetailIdx ? 'font-weight:700;' : ''}">Rycina 1${DETAIL_LETTERS[i].toUpperCase()}</span>
+                    ${canRemove ? `<button class="btn-remove-detail" onclick="event.stopPropagation(); removeDetail(${i})" title="Usuń">×</button>` : ''}`;
+                w2DetailList.appendChild(row);
+            });
+        }
+
+        function _setActiveDetail(idx) {
+            if (!w2Details[idx]) return;
+            activeDetailIdx = idx;
+
+            // Sync slider to current detail size and loaded filters
+            const selEl = w2Details[idx].selectorEl;
+            const widthPct = parseFloat(selEl.style.width) || 25; // fallback
+            const currentScale = 100 / widthPct;
+            zoomRange.value = currentScale;
+            zoomVal.innerText = currentScale.toFixed(1) + 'x';
+            zoomInfoText.innerText = `Przybliżenie: ${currentScale.toFixed(1)}x.`;
+
+            // Sync filter sliders
+            const f = w2Details[idx].filters;
+            corrBrightness.value = f.b; corrBrightnessVal.textContent = f.b;
+            corrContrast.value = f.c; corrContrastVal.textContent = f.c;
+            corrSaturation.value = f.s; corrSaturationVal.textContent = f.s;
+            corrSharpen.value = f.sh; corrSharpenVal.textContent = f.sh.toFixed(1);
+
+            _refreshDetailSidebar();
+
+            // Force selector size update for the newly active detail
+            updateSelectorSize();
+            _updateDetailZoom(idx);
+        }
+
+        function _updateDetailZoom(idx) {
+            if (!mainFrame.complete || mainFrame.naturalWidth === 0) return;
+            const d = w2Details[idx];
+            if (!d) return;
+            const container = document.getElementById('detail-canvas-container-' + idx);
+
+            const wrapRect = wrapper.getBoundingClientRect();
+            const selRect = d.selectorEl.getBoundingClientRect();
+            const ratioX = mainFrame.naturalWidth / mainFrame.clientWidth;
+            const ratioY = mainFrame.naturalHeight / mainFrame.clientHeight;
+            const srcX = (selRect.left - wrapRect.left) * ratioX;
+            const srcY = (selRect.top - wrapRect.top) * ratioY;
+            const srcW = selRect.width * ratioX;
+            const srcH = selRect.height * ratioY;
+
+            const dispW = container.clientWidth || 300;
+            const mult = Math.max(1, Math.floor(dispW / srcW));
+            d.canvasEl.width = Math.round(srcW) * mult;
+            d.canvasEl.height = Math.round(srcH) * mult;
+            d.ctx.imageSmoothingEnabled = false;
+
+            const f = d.filters;
+            const filterStr = getCorrectionFilter(f);
+
+            if (f.sh > 0) {
+                const offscreen = document.createElement('canvas');
+                offscreen.width = d.canvasEl.width;
+                offscreen.height = d.canvasEl.height;
+                const offCtx = offscreen.getContext('2d');
+                offCtx.imageSmoothingEnabled = false;
+                offCtx.filter = filterStr;
+                offCtx.drawImage(mainFrame, srcX, srcY, srcW, srcH, 0, 0, offscreen.width, offscreen.height);
+                offCtx.filter = 'none';
+                applyUnsharpMask(offscreen, offCtx, f.sh);
+                d.canvasEl.style.filter = 'none';
+                d.ctx.clearRect(0, 0, d.canvasEl.width, d.canvasEl.height);
+                d.ctx.drawImage(offscreen, 0, 0);
+            } else {
+                d.canvasEl.style.filter = filterStr;
+                d.ctx.drawImage(mainFrame, srcX, srcY, srcW, srcH, 0, 0, d.canvasEl.width, d.canvasEl.height);
+            }
+        }
+
+        function updateAllDetailZooms() {
+            w2Details.forEach((_, i) => _updateDetailZoom(i));
+            if (currentVariant === 'w2') {
+                renderArrows();
+                _refreshW2Methodologies();
+            }
+        }
+
+        function _refreshW2Methodologies() {
+            if (currentVariant !== 'w2' || !w2MethodologiesList) return;
+            w2MethodologiesList.innerHTML = '';
+            w2Details.forEach((d, i) => {
+                const letter = DETAIL_LETTERS[i].toUpperCase();
+                const label = '1' + letter;
+                const f = d.filters;
+
+                const fb = parseInt(f.b);
+                const fc = parseInt(f.c);
+                const fs = parseInt(f.s);
+                const fsh = parseFloat(f.sh);
+
+                const activeFilters = (fb !== 100 || fc !== 100 || fs !== 100 || fsh > 0);
+                const parts = [];
+                if (fb !== 100) parts.push(`jasność ${fb}%`);
+                if (fc !== 100) parts.push(`kontrast ${fc}%`);
+                if (fs !== 100) parts.push(`nasycenie ${fs}%`);
+                if (fsh > 0) parts.push(`wyostrzenie USM ${fsh.toFixed(1)}`);
+                const filterText = activeFilters ? ` Zastosowano korekcję obrazu: ${parts.join(', ')}.` : '';
+
+                // approximate zoom representation
+                const widthPct = parseFloat(d.selectorEl.style.width) || 25;
+                const scale = (100 / widthPct).toFixed(1);
+
+                // approximate pixel multiplication
+                const selRect = d.selectorEl.getBoundingClientRect();
+                const ratioX = mainFrame.naturalWidth / mainFrame.clientWidth;
+                const srcW = selRect.width * ratioX;
+                const dispW = d.canvasEl.width || 300;
+                const mult = Math.max(1, Math.floor(dispW / srcW));
+
+                const div = document.createElement('div');
+                div.className = 'text-[10px] p-2 border border-gray-100 bg-gray-50 break-inside-avoid';
+                div.innerHTML = `
+                    <p class="font-bold mb-1 uppercase text-red-900 border-b border-red-100 pb-1">
+                        Rycina ${label} - Metodyka:
+                    </p>
+                    <p class="leading-tight text-gray-700">
+                        Obszar przedstawiony na Ryc. ${label} stanowi bezpośrednie powiększenie fragmentu wskazanego na Ryc. 1.
+                        Obszar zaznaczenia: <strong>${scale}&times;</strong> (selektor obejmuje 1/${scale} szerokości obrazu).
+                        Powiększenie pikselowe: <strong>${mult}&times;</strong> (każdy piksel źródłowy = ${mult}×${mult} pikseli wynikowych).
+                        Zachowano proporcje 1:1 obszaru źródłowego. Wyłączono interpolację dwuliniową — każdy piksel źródłowy odwzorowany jako identyczny blok N×N pikseli.${filterText}
+                    </p>
+                `;
+                w2MethodologiesList.appendChild(div);
+            });
+        }
+
+        // ─── SVG Arrows (W2) ─────────────────────────────────────────────────
+        // Draws bezier arrows from each selector center → top of its canvas,
+        // all coordinates relative to #content-flex-wrapper.
+        function renderArrows() {
+            arrowOverlay.innerHTML = '';
+            if (currentVariant !== 'w2' || !w2Details.length) {
+                arrowOverlay.style.display = 'none';
+                return;
+            }
+            arrowOverlay.style.display = '';
+
+            const NS = 'http://www.w3.org/2000/svg';
+            const refRect = contentFlexWrapper.getBoundingClientRect();
+
+            // Arrowhead markers
+            const defs = document.createElementNS(NS, 'defs');
+            w2Details.forEach((d, i) => {
+                const marker = document.createElementNS(NS, 'marker');
+                marker.setAttribute('id', 'ah-' + i);
+                marker.setAttribute('markerWidth', '7');
+                marker.setAttribute('markerHeight', '7');
+                marker.setAttribute('refX', '6');
+                marker.setAttribute('refY', '3.5');
+                marker.setAttribute('orient', 'auto');
+                const poly = document.createElementNS(NS, 'polygon');
+                poly.setAttribute('points', '0 0, 7 3.5, 0 7');
+                poly.setAttribute('fill', DETAIL_COLORS[i]);
+                marker.appendChild(poly);
+                defs.appendChild(marker);
+            });
+            arrowOverlay.appendChild(defs);
+
+            w2Details.forEach((d, i) => {
+                const color = DETAIL_COLORS[i];
+                const letter = DETAIL_LETTERS[i].toUpperCase();
+
+                // Start: selector bottom-center relative to contentFlexWrapper
+                const selRect = d.selectorEl.getBoundingClientRect();
+                const x1 = selRect.left + selRect.width / 2 - refRect.left;
+                const y1 = selRect.top + selRect.height - refRect.top; // Bottom edge
+
+                // End: top-center of the matching canvas container
+                const canv = document.getElementById('detail-canvas-container-' + i);
+                if (!canv) return;
+                const canvRect = canv.getBoundingClientRect();
+                const x2 = canvRect.left + canvRect.width / 2 - refRect.left;
+                const y2 = canvRect.top - refRect.top;
+
+                let pathD = '';
+
+                // For 1C and 1D (indices 2 and 3), route between 1A and 1B
+                if (i >= 2) {
+                    const c0 = document.getElementById('detail-canvas-container-0');
+                    const c1 = document.getElementById('detail-canvas-container-1');
+                    if (c0 && c1) {
+                        const c0R = c0.getBoundingClientRect();
+                        const c1R = c1.getBoundingClientRect();
+                        const gapX = ((c0R.right + c1R.left) / 2) - refRect.left;
+                        const gapTopY = c0R.top - refRect.top - 10;
+                        const gapBottomY = y2 - 15;
+
+                        // Bezier to gap top, line through gap, bezier to target
+                        const cp1x = x1, cp1y = y1 + (gapTopY - y1) * 0.5;
+                        const cp2x = gapX, cp2y = gapTopY - (gapTopY - y1) * 0.2;
+
+                        const cp3x = gapX, cp3y = gapBottomY + 10;
+                        const cp4x = x2, cp4y = y2 - 10;
+
+                        pathD = `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${gapX} ${gapTopY} L ${gapX} ${gapBottomY} C ${cp3x} ${cp3y}, ${cp4x} ${cp4y}, ${x2} ${y2}`;
+                    }
+                }
+
+                if (!pathD) {
+                    // Standard cubic bezier path
+                    const cp1x = x1, cp1y = y1 + (y2 - y1) * 0.55;
+                    const cp2x = x2, cp2y = y2 - (y2 - y1) * 0.2;
+                    pathD = `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
+                }
+
+                const path = document.createElementNS(NS, 'path');
+                path.setAttribute('d', pathD);
+                path.setAttribute('stroke', color);
+                path.setAttribute('stroke-width', '1.5');
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke-dasharray', '5 3');
+                path.setAttribute('marker-end', `url(#ah-${i})`);
+                arrowOverlay.appendChild(path);
+
+                // Label badge near selector (start)
+                const g = document.createElementNS(NS, 'g');
+                const lbg = document.createElementNS(NS, 'rect');
+                lbg.setAttribute('x', x1 + 4); lbg.setAttribute('y', y1 + 4);
+                lbg.setAttribute('width', '16'); lbg.setAttribute('height', '11');
+                lbg.setAttribute('rx', '3'); lbg.setAttribute('fill', color);
+                const lbt = document.createElementNS(NS, 'text');
+                lbt.setAttribute('x', x1 + 12); lbt.setAttribute('y', y1 + 12);
+                lbt.setAttribute('text-anchor', 'middle');
+                lbt.setAttribute('font-size', '7'); lbt.setAttribute('font-weight', '700');
+                lbt.setAttribute('font-family', 'Inter,sans-serif');
+                lbt.setAttribute('fill', '#fff');
+                lbt.textContent = '1' + letter;
+                g.appendChild(lbg); g.appendChild(lbt);
+                arrowOverlay.appendChild(g);
+            });
+        }
+
+        // ─── Make element draggable within a given parent wrapper ─────────────
+        function _makeDraggable(el, onMoveCallback, wrapEl) {
+            wrapEl = wrapEl || wrapper;
+            let dragging = false, sx, sy;
+            el.addEventListener('mousedown', e => {
+                dragging = true;
+                sx = e.clientX - el.offsetLeft;
+                sy = e.clientY - el.offsetTop;
+                e.preventDefault(); e.stopPropagation();
+            });
+            window.addEventListener('mousemove', e => {
+                if (!dragging) return;
+                const maxX = wrapEl.clientWidth - el.clientWidth;
+                const maxY = wrapEl.clientHeight - el.clientHeight;
+                el.style.left = Math.max(0, Math.min(e.clientX - sx, maxX)) + 'px';
+                el.style.top = Math.max(0, Math.min(e.clientY - sy, maxY)) + 'px';
+                if (onMoveCallback) onMoveCallback();
+            });
+            window.addEventListener('mouseup', () => { dragging = false; });
+        }
+
+        // ─── Variant zoom hook (called from inside updateZoom) ───────────────
+        function _variantZoomHook() {
+            if (currentVariant === 'w2') updateAllDetailZooms();
+        }
     </script>
 </body>
 

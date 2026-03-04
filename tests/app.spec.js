@@ -28,7 +28,8 @@ test.describe('GenTab - Testy Funkcjonalne', () => {
 
   test('Wpisanie sygnatury powinno zaktualizować nagłówek arkusza', async ({ page }) => {
     await page.fill('#input-sygnatura', 'II K 123/24');
-    await expect(page.locator('#display-sygnatura')).toContainText('SYGNATURA: II K 123/24');
+    // Nowy format: brak prefiksu "SYGNATURA: "
+    await expect(page.locator('#display-sygnatura')).toHaveText('II K 123/24');
   });
 
   test('Wpisanie jednostki powinno zaktualizować nagłówek arkusza', async ({ page }) => {
@@ -41,8 +42,9 @@ test.describe('GenTab - Testy Funkcjonalne', () => {
     await expect(page.locator('#display-zalacznik')).toHaveText('5');
   });
 
-  test('Wybór daty powinien zaktualizować datę w arkuszu', async ({ page }) => {
+  test('Wybór daty powinien zaktualizować datę w stopce arkusza', async ({ page }) => {
     await page.fill('#input-data', '2026-03-04');
+    // Nowy format: data w stopce "Wykonano w dniu..."
     await expect(page.locator('#display-data')).toHaveText('2026-03-04');
   });
 
@@ -50,6 +52,18 @@ test.describe('GenTab - Testy Funkcjonalne', () => {
     await page.selectOption('#input-typ-dokumentu', 'sprawozdanie');
     await expect(page.locator('#display-podpis')).toContainText('Specjalisty');
     await expect(page.locator('#display-typ-dokumentu')).toHaveText('SPRAWOZDANIA');
+  });
+
+  // ─── Warianty (Faza 1) ────────────────────────────────────────────────────
+
+  test('Powinien przełączyć na wariant W2 i dodać szczegół', async ({ page }) => {
+    await page.selectOption('#layout-variant', 'w2');
+    await expect(page.locator('#w2-controls')).toBeVisible();
+
+    await page.click('button:has-text("Dodaj szczegół")');
+    // Sprawdź czy pojawił się selektor 1A (pierwszy domyślny list to a)
+    await expect(page.locator('.detail-selector')).toHaveCount(1);
+    await expect(page.locator('.detail-zoom-block')).toHaveCount(1);
   });
 
   // ─── Panele (collapse/expand) ─────────────────────────────────────────────
